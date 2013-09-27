@@ -225,8 +225,10 @@ let (|IsRoom|_|) (str:string) =
     with 
         | exn -> None
 
-/// Checks the first 5 bytes of the socket sequence 
+/// Checks the header sequence to see 
 /// to see if this client should be the control
+// or if its a room. Header sequence is 9 bytes
+// of the form : "room/#   " or "control//"
 let connectionType client =     
     client  |> readNBytes 9
             |> Seq.concat             
