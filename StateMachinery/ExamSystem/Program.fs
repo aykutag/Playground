@@ -24,7 +24,7 @@ let initializeAgentRepos() =
 
     let agentRepo() = !agentRepoRef
 
-    let roomAgents = [for roomId in [1..100] -> (roomId, roomConnection agentRepo roomId)]
+    let roomAgents = [for roomId in [1..5] -> (roomId, roomConnection agentRepo roomId)]
 
     let controlInterfaceAgent = controlInterface agentRepo (defaultRoomStates())
 

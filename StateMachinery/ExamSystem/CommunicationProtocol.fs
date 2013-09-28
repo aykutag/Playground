@@ -67,9 +67,10 @@ module CommunicationProtocol =
     let header client = client |> readNBytes 9 |> toArr |> System.Text.ASCIIEncoding.UTF8.GetString    
 
     let isConnected (client:TcpClient) = 
-        let worker = 
+        let worker() = 
+            //printfn "Checking socket connectivity"
             try
-                if client.Client.Poll(-1, SelectMode.SelectWrite) && not <| client.Client.Poll(0, SelectMode.SelectError)  then                    
+                if client.Client.Poll(10, SelectMode.SelectWrite) && not <| client.Client.Poll(0, SelectMode.SelectError)  then                    
                     let checkConn = Array.create 1 (byte 0)
                     if client.Client.Receive(checkConn, SocketFlags.Peek) = 0 then
                         false
@@ -80,7 +81,7 @@ module CommunicationProtocol =
             with
                 | exn -> false
 
-        async { return worker }
+        async { return worker() }
                     
     let packets client : seq<string> = 
         seq {

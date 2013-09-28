@@ -93,6 +93,8 @@ module RoomConnections =
             let! isConnected = isConnected client
             if not isConnected then
                 roomConn |> post (RoomConnMsg.Disconnect client)
+            else 
+                return! monitorRoomConnectivity roomConn client
         }
 
     let rec monitorCntrlConnectivity (cntrl:Agent<ControlInterfaceMsg>) client = 
@@ -100,6 +102,8 @@ module RoomConnections =
             let! isConnected = isConnected client
             if not isConnected then
                 cntrl |> post (ControlInterfaceMsg.Disconnect client)
+            else 
+                return! monitorCntrlConnectivity cntrl client
         }
 
     let rec listenForControlCommands (controlConn:Agent<ControlInterfaceMsg>) client = 
@@ -131,12 +135,12 @@ module RoomConnections =
         new Agent<RoomConnMsg>(
             fun inbox ->        
         
-            let connections = ref []
-            let rec loop() =
+            let rec loop connections =
                 async {   
+                    //printfn "Executing room loop %d" roomId
                     let! request = inbox.Receive() 
-                    let originalConnectionSize = List.length !connections                              
-                    ignore <|
+                    let originalConnectionSize = List.length connections                              
+                    let newConnections = 
                         match request with
                             | RoomConnMsg.Connect client    ->
                                 agentRepo().Global |> post (GlobalMsg.Broadcast <| sprintf "Client connected to room %d" roomId)
@@ -144,82 +148,82 @@ module RoomConnections =
                                 (inbox, client) |> applyTupleTo [processClientData; monitorRoomConnectivity] 
                                                 |> List.iter Async.Start
 
-                                connections := client::!connections
+                                client::connections
 
                             | RoomConnMsg.Disconnect client -> 
-                                client.Close()
-                                connections := !connections |> removeTcp <| client
+                                try
+                                    client.Close()
+                                with
+                                    | exn -> ()
 
-                            | RoomConnMsg.Broadcast msg -> msg |> broadcastStr !connections |> ignore
+                                printfn "Client disconnected from room %d" roomId
+
+                                connections |> removeTcp <| client
+
+                            | RoomConnMsg.Broadcast msg -> msg |> broadcastStr connections |> snd
 
                             | RoomConnMsg.BroadcastExcept (client, msg) ->                             
-                                msg |> broadcastStr ((List.filter ((<>) client)) !connections) |> ignore                                 
+                                let successFull = msg |> broadcastStr ((List.filter ((<>) client)) connections) |> snd 
+                                client::successFull
 
                             | RoomConnMsg.Shutdown -> 
-                                "Shutting down" |> strToBytes |> broadcast !connections |> ignore
-                                List.iter closeClient !connections
-                                connections := []
+                                "Shutting down" |> strToBytes |> broadcast connections |> ignore
+                                List.iter closeClient connections
+                                []
 
-                    if originalConnectionSize <> List.length !connections then
-                        printfn "total clients %d" <| List.length !connections
+                    if originalConnectionSize <> List.length newConnections then
+                        printfn "total clients %d" <| List.length newConnections
 
-                    return! loop ()
+                    return! loop newConnections
                 }
-            loop ())
+            loop [])
 
     /// The control interface agent.  Handles room state requests
     and controlInterface agentRepo (defaultRoomStates:Room list) =     
         Agent<ControlInterfaceMsg>.Start(fun inbox ->
-            let connections = ref []
-            let rec loop rooms = 
+            let rec loop connections rooms = 
                async {
                     let! msg = inbox.Receive()
 
-                    let newRooms = 
+                    let (conn, newRooms) = 
                         match msg with 
                             | ControlInterfaceMsg.Connect client ->     
                                 (inbox, client) |> applyTupleTo [listenForControlCommands; monitorCntrlConnectivity] 
                                                 |> List.iter Async.Start
 
-                                connections := client::!connections
-                                rooms
+                                (client::connections, rooms)
 
-                            | ControlInterfaceMsg.Disconnect client -> 
-                                !connections |> removeTcp <| client |> ignore
-                                rooms
+                            | ControlInterfaceMsg.Disconnect client -> (connections |> removeTcp <| client, rooms)
 
-                            | ControlInterfaceMsg.Broadcast str -> 
-                                str |> broadcastStr !connections |> ignore
-                                rooms
+                            | ControlInterfaceMsg.Broadcast str -> (str |> broadcastStr connections |> snd, rooms)
 
                             | ControlInterfaceMsg.Shutdown -> 
-                                "Shutting down" |> strToBytes |> broadcast !connections |> ignore
-                                List.iter closeClient !connections
-                                []
+                                "Shutting down" |> strToBytes |> broadcast connections |> ignore
+                                List.iter closeClient connections
+                                ([], [])
 
                             | ControlInterfaceMsg.GetRoom (roomNum, channel) ->
                                 let room = List.find (fun (r:Room) -> r.RoomId = roomNum) rooms
                                 channel.Reply room
-                                rooms
+                                (connections, rooms)
 
                             | ControlInterfaceMsg.Advance roomNum ->
                                 let (room, newStates) = rooms |> applyToRoomStates advance roomNum                    
                                 postToRoom (agentRepo()) roomNum (RoomConnMsg.Broadcast <| sprintf "room %d advnced" roomNum)
-                                { room with States = newStates} :: List.filter ((<>) room) rooms
+                                (connections, { room with States = newStates} :: List.filter ((<>) room) rooms)
 
                             | ControlInterfaceMsg.Reverse roomNum ->
                                 let (room, newStates) = rooms |> applyToRoomStates reverse roomNum                    
                                 postToRoom (agentRepo()) roomNum (RoomConnMsg.Broadcast <| sprintf "room %d reversed" roomNum)
-                                { room with States = newStates} :: List.filter ((<>) room) rooms
+                                (connections, { room with States = newStates} :: List.filter ((<>) room) rooms)
 
                             | ControlInterfaceMsg.AddParticipant (roomNum, participantId) ->
                                 postToRoom (agentRepo()) roomNum (RoomConnMsg.Broadcast <| sprintf "particpiant %d add to room %d" participantId roomNum)
-                                rooms
+                                (connections, rooms)                        
 
-                    return! loop newRooms
+                    return! loop conn newRooms
                }
-
-            loop defaultRoomStates
+            loop [] defaultRoomStates
         )
 
     /// The global agent that can rebroadcast to all room controllers
