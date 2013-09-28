@@ -31,7 +31,7 @@ module RoomConnections =
         | Disconnect of TcpClient
         | Broadcast of string     
         | Shutdown
-        | GetRoom of RoomId * AsyncReplyChannel<Room>
+        | GetRoom of RoomId
         | Advance of RoomId
         | Reverse of RoomId
         | AddParticipant of (RoomId * ParticipantId)
@@ -114,9 +114,10 @@ module RoomConnections =
                         match message with 
                             | AdvanceCmd roomNum -> ControlInterfaceMsg.Advance roomNum
                             | ReverseCmd roomNum -> ControlInterfaceMsg.Reverse roomNum
+                            | QueryRoom  roomNum -> ControlInterfaceMsg.GetRoom roomNum
                             | _ -> ControlInterfaceMsg.Broadcast ("Unknown command: " + message)
-
-                    controlConn.Post action
+                    
+                    controlConn.Post action                    
             with
                 | exn -> controlConn.Post (ControlInterfaceMsg.Disconnect client)
         }
@@ -151,11 +152,8 @@ module RoomConnections =
                                 client::connections
 
                             | RoomConnMsg.Disconnect client -> 
-                                try
-                                    client.Close()
-                                with
-                                    | exn -> ()
-
+                                client.Close()
+                                
                                 printfn "Client disconnected from room %d" roomId
 
                                 connections |> removeTcp <| client
@@ -202,9 +200,11 @@ module RoomConnections =
                                 List.iter closeClient connections
                                 ([], [])
 
-                            | ControlInterfaceMsg.GetRoom (roomNum, channel) ->
+                            | ControlInterfaceMsg.GetRoom (roomNum) ->
                                 let room = List.find (fun (r:Room) -> r.RoomId = roomNum) rooms
-                                channel.Reply room
+                                
+                                inbox.Post (ControlInterfaceMsg.Broadcast (roomString room))
+
                                 (connections, rooms)
 
                             | ControlInterfaceMsg.Advance roomNum ->

@@ -122,6 +122,12 @@ module CommunicationProtocol =
         if str.StartsWith("reverse ") then 
             str.Replace("reverse ","").Trim() |> Convert.ToInt32 |> Some
         else None
+
+    let (|QueryRoom|_|) (str:string) = 
+        if str.StartsWith("query ") then 
+            str.Replace("query ","").Trim() |> Convert.ToInt32 |> Some
+        else None
+
     /// Checks the header sequence to see 
     /// to see if this client should be the control
     /// or if its a room. Header sequence is 9 bytes

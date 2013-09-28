@@ -30,6 +30,8 @@ module StateManager =
 
     type Room = { RoomId: int; States: RoomStates }
 
+    let roomString room = sprintf "%A" room
+
     let advance states =
         match states.PendingStates with 
             | h::t -> 

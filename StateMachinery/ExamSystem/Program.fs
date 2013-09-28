@@ -10,7 +10,13 @@ open ExamSystem.RoomConnections
 let dispose (i:IDisposable) = i.Dispose()
 
 let defaultRoomStates() = 
-    let emptyRoom i = { RoomId = i; States = { PendingStates = []; ConsumedStates = []; CurrentState = State.Empty } }
+    let emptyRoom i = { RoomId = i; 
+                        States = { 
+                                    PendingStates = [DoorNotes []; Encounter []; PostEncounter []; Followup []]; 
+                                    ConsumedStates = []; 
+                                    CurrentState = State.Empty 
+                                 } 
+                      }
 
     List.init 20 emptyRoom
 
