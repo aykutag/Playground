@@ -4,18 +4,17 @@ module ExamMain
 
 open System
 open System.IO
-open ExamSystem
-open RoomConnections
+open ExamSystem.StateManager
+open ExamSystem.RoomConnections
 
-[<EntryPoint>]
-let main argv =    
+let dispose (i:IDisposable) = i.Dispose()
 
-    
+let defaultRoomStates() = 
     let emptyRoom i = { RoomId = i; States = { PendingStates = []; ConsumedStates = []; CurrentState = State.Empty } }
 
-    let defaultRoomStates = List.init 20 emptyRoom
+    List.init 20 emptyRoom
 
-   
+let initializeAgentRepos() = 
     let agentRepoRef = 
                         ref { 
                             Global = new Agent<GlobalMsg>(fun _ -> async{return ()});
@@ -27,7 +26,7 @@ let main argv =
 
     let roomAgents = [for roomId in [1..100] -> (roomId, roomConnection agentRepo roomId)]
 
-    let controlInterfaceAgent = controlInterface agentRepo defaultRoomStates
+    let controlInterfaceAgent = controlInterface agentRepo (defaultRoomStates())
 
     let globalAgent = globalAgent agentRepo
 
@@ -37,20 +36,25 @@ let main argv =
         Rooms   = roomAgents;
     }
 
-    List.iter startRoom roomAgents
+    !agentRepoRef
 
-    use listener = listenForConnections agentRepo
+[<EntryPoint>]
+let main argv =    
     
-    let timers = roomAgents |> List.map (snd >> (timer 1000))    
+    let agentRepos = initializeAgentRepos()
+    
+    agentRepos.Rooms |> List.iter startRoom 
 
-    let disposes = List.map snd timers
+    use listener = listenForConnections agentRepos
+    
+    let (timer, disposable) = timer 1000 agentRepos
 
-    let startTimers = List.map (fst >> Async.Start) timers
+    timer |> Async.Start |> ignore
 
     printfn "press any key to stop..."
     
     Console.ReadKey() |> ignore
 
-    List.iter (fun (i:IDisposable) -> i.Dispose()) disposes       
+    dispose disposable
     
     0
