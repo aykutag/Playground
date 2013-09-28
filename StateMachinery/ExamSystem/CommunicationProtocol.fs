@@ -28,8 +28,8 @@ module CommunicationProtocol =
             yield! listenOnClient client
         }    
 
-    /// Listens on a tcp client and returns a seq<byte[]> of all
-    /// found data
+    /// Listens on a tcp client and returns a seq<byte[]> where the total byte
+    /// count is N
     let rec private readNBytes n (client:TcpClient) = 
         seq {            
             if n > 0 then 
@@ -66,6 +66,7 @@ module CommunicationProtocol =
 
     let header client = client |> readNBytes 9 |> toArr |> System.Text.ASCIIEncoding.UTF8.GetString    
 
+    /// Async worker to say whether a socket is connected or not
     let isConnected (client:TcpClient) = 
         let worker() = 
             //printfn "Checking socket connectivity"
@@ -83,16 +84,22 @@ module CommunicationProtocol =
 
         async { return worker() }
                     
+    /// Reads off the client socket and aggregates commands that are seperated by newlines
     let packets client : seq<string> = 
+        let filterEmpty =  Seq.filter ((<>) String.Empty)
         seq {
                 let builder = new StringBuilder()
                 for str in client |> listenOnClient |> Seq.map System.Text.ASCIIEncoding.UTF8.GetString do
                     let l = (builder.ToString() + str).Split([|'\r'; '\n'|]) 
                     builder.Clear() |> ignore
+
+                    // this means we got a newline following the last string so we have a 
+                    // group of totally valid commands
                     if Seq.last l = String.Empty then
-                        for entry in l |> Seq.filter ((<>) String.Empty) do yield entry
+                        for entry in l |> filterEmpty do yield entry
                     else
-                        let nonEmpties = l |> Seq.filter ((<>) String.Empty)
+                        // we didn't get a complete final command, so process all the other ones
+                        let nonEmpties = l |> filterEmpty
                         builder.Append (Seq.last nonEmpties) |> ignore
                         for entry in (Seq.take (Seq.length nonEmpties - 1) nonEmpties) do 
                             yield entry
