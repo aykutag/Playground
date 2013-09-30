@@ -49,10 +49,13 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExamControlData.fs" />
     <Compile Include="Utils.fs" />
     <Compile Include="ExamSystem.fs" />
     <Compile Include="CommunicationProtocol.fs" />
+    <Compile Include="ControlInterface.fs" />
     <Compile Include="RoomConnections.fs" />
+    <Compile Include="GlobalConnection.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
     <None Include="packages.config" />

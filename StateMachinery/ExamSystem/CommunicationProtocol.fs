@@ -53,8 +53,8 @@ module CommunicationProtocol =
     let private prepend a b = Array.append b a 
     let private readN n client = client |> readNBytes n |> endianArr
 
-    let private num4Bytes client = client |> readN 4
-    let private num2Bytes client = client |> readN 2
+    let private num4Bytes client = client |> readN 4 |> Array.rev
+    let private num2Bytes client = client |> readN 2 |> Array.rev
 
     let readInt32 client    = client num4Bytes |> toInt32
     let read3ByteInt client = client |> readNBytes 3 |> toArr |> prepend [|(byte 0)|] |> Array.rev |> toInt32
@@ -90,17 +90,21 @@ module CommunicationProtocol =
         seq {
                 let builder = new StringBuilder()
                 for str in client |> listenOnClient |> Seq.map System.Text.ASCIIEncoding.UTF8.GetString do
-                    let l = (builder.ToString() + str).Split([|'\r'; '\n'|]) 
+
+                    let wordsWithBlanks = (builder.ToString() + str).Split([|'\r'; '\n'|]) 
+                
                     builder.Clear() |> ignore
 
                     // this means we got a newline following the last string so we have a 
                     // group of totally valid commands
-                    if Seq.last l = String.Empty then
-                        for entry in l |> filterEmpty do yield entry
+                    if Seq.last wordsWithBlanks = String.Empty then
+                        for entry in wordsWithBlanks |> filterEmpty do yield entry
                     else
                         // we didn't get a complete final command, so process all the other ones
-                        let nonEmpties = l |> filterEmpty
+                        let nonEmpties = wordsWithBlanks |> filterEmpty
+
                         builder.Append (Seq.last nonEmpties) |> ignore
+                        
                         for entry in (Seq.take (Seq.length nonEmpties - 1) nonEmpties) do 
                             yield entry
         }

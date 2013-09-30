@@ -52,6 +52,6 @@ module StateManager =
                 }        
             | [] -> states
 
-    let applyToRoomStates step roomId rooms = 
+    let findRoomAndApply step roomId rooms = 
         let room = List.find (fun (r:Room) -> r.RoomId = roomId) rooms
         (room, step room.States)

@@ -4,8 +4,12 @@ module ExamMain
 
 open System
 open System.IO
+open ExamSystem.ExamControlData
 open ExamSystem.StateManager
 open ExamSystem.RoomConnections
+open ExamSystem.ExamUtils
+open ExamSystem.ControlInterface
+open ExamSystem.GlobalConnection
 
 let dispose (i:IDisposable) = i.Dispose()
 
@@ -51,7 +55,7 @@ let main argv =
     
     agentRepos.Rooms |> List.iter startRoom 
 
-    use listener = listenForConnections agentRepos
+    use listener = listenForConnections agentRepos       
     
     let (timer, disposable) = timer 1000 agentRepos
 
