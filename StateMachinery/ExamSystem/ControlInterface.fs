@@ -17,34 +17,46 @@ module ControlInterface =
             Inbox : Agent<ControlInterfaceMsg>
         }
         
-    let updateRoomsWithState state room roomCollection = { room with States = state} :: List.filter ((<>) room) roomCollection
-    
-    let rec private listenForControlCommands (controlConn:Agent<ControlInterfaceMsg>) client =         
+    let private queryRoom roomNum client agentRepo  = 
+        async{
+            let! room = agentRepo.Control |> postAndAsyncReply (fun chan -> ControlInterfaceMsg.GetRoom(roomNum, chan)) 
+            
+            agentRepo.Control |> post (ControlInterfaceMsg.BroadcastTo (client, sprintf "%A" room))
+        }
+
+    let rec private listenForControlCommands (agentRepo:AgentRepo) client =         
         async {
+            let postFlip mailbox msg = post msg mailbox
+            let postToControl = postFlip agentRepo.Control
+
             do! Async.SwitchToNewThread() 
             try
-                for message in client |> packets do
-                    let action = 
-                        match message with 
-                            | AdvanceCmd roomNum -> ControlInterfaceMsg.Advance roomNum
-                            | ReverseCmd roomNum -> ControlInterfaceMsg.Reverse roomNum
-                            | QueryRoom  roomNum -> ControlInterfaceMsg.GetRoom roomNum
-                            | _ -> ControlInterfaceMsg.Broadcast ("Unknown command: " + message)
-                    
-                    controlConn.Post action                    
+                for message in client |> packets do                                       
+                    match message with                         
+                        | AdvanceCmd roomNum        -> postToControl <| ControlInterfaceMsg.Advance roomNum
+                        | ReverseCmd roomNum        -> postToControl <| ControlInterfaceMsg.Reverse roomNum                                 
+                        | StartPreview roomNum      -> postToControl <| ControlInterfaceMsg.StartPreview roomNum
+                        | StartStreaming roomNum    -> postToControl <| ControlInterfaceMsg.StartStreaming roomNum
+                        | Record roomNum            -> postToControl <| ControlInterfaceMsg.Record roomNum
+                        | ResetRoom roomNum         -> postToControl <| ControlInterfaceMsg.Reset roomNum
+                        | QueryRoom roomNum         -> do! agentRepo |> queryRoom roomNum client
+                        | _                         -> postToControl <| ControlInterfaceMsg.Broadcast ("Unknown control sequence " + message)                 
             with
-                | exn -> controlConn.Post (ControlInterfaceMsg.Disconnect client)
+                | exn -> postToControl (ControlInterfaceMsg.Disconnect client)
         }
 
     let private shutdown connections =         
         "Shutting down" |> strToBytes |> broadcast connections |> ignore
-        List.iter closeClient connections          
-              
-
+        List.iter closeClient connections                       
 
     let private getRoom data roomNum = List.find (fun (r:Room) -> r.RoomId = roomNum) data.RoomStates
     
-    let private broadcastRoomState data room = data.Inbox.Post (ControlInterfaceMsg.Broadcast (roomString room))                                    
+    let private updateRoomList rooms room = room::(List.filter ((<>) room) rooms)
+
+    let private updateRoomsWithState state room roomCollection = { room with States = state} |> updateRoomList roomCollection 
+
+    let private broadcastRoomState data room = 
+        data.Inbox |> post (ControlInterfaceMsg.Broadcast (roomString room))
 
     let private updateRoomState data roomNum description step = 
         let (room, newStates) = (roomNum, data.RoomStates) ||> findRoomAndApply step                    
@@ -56,14 +68,20 @@ module ControlInterface =
     let private addParticipant data roomNum participantId =         
         postToRoom data.AgentRepo roomNum (RoomConnMsg.Broadcast <| sprintf "particpiant %d add to room %d" participantId roomNum)
                             
-    let private postDisconnect (inbox:Agent<ControlInterfaceMsg>) client = inbox.Post (ControlInterfaceMsg.Disconnect client)                            
+    let private postDisconnect (inbox:Agent<ControlInterfaceMsg>) client = 
+        inbox |> post (ControlInterfaceMsg.Disconnect client)
 
     let private clientConnected data client = 
         monitor isConnected (postDisconnect data.Inbox) client |> Async.Start
 
-        (data.Inbox, client) ||> listenForControlCommands |> Async.Start
+        (data.AgentRepo, client) ||> listenForControlCommands |> Async.Start
 
-    let private processControlMessage data = function        
+    let private startRecording data roomNum = { (roomNum |> getRoom data) with RecorderStatus = Recording }
+    let private reset data roomNum          = { (roomNum |> getRoom data) with RecorderStatus = NoStatus }
+    let private startPreview data roomNum   = { (roomNum |> getRoom data) with RecorderStatus = Preview }
+    let private startStreaming data roomNum = { (roomNum |> getRoom data) with RecorderStatus = Streaming }
+
+    let private processControlMessageState data = function        
         | ControlInterfaceMsg.Connect client ->     
             
             clientConnected data client
@@ -76,14 +94,18 @@ module ControlInterface =
         | ControlInterfaceMsg.Broadcast str -> 
             { data with Connections = str |> broadcastStr data.Connections |> snd }
 
+        | ControlInterfaceMsg.BroadcastTo (client, str) ->
+            str |> broadcastStr [client] |> ignore
+            data
+
         | ControlInterfaceMsg.Shutdown -> 
             shutdown data.Connections
 
             { data with Connections =  [] }
 
-        | ControlInterfaceMsg.GetRoom roomNum -> 
-            roomNum |> getRoom data |> broadcastRoomState data
-            data
+        | ControlInterfaceMsg.GetRoom (roomNum, reply) -> 
+            reply.Reply(findRoom roomNum data.RoomStates)
+            data        
 
         | ControlInterfaceMsg.Advance roomNum -> 
             { data with RoomStates = advance |> updateRoomState data roomNum (sprintf "room %d advnced" roomNum)  }
@@ -95,6 +117,18 @@ module ControlInterface =
             addParticipant data roomNum participantId 
             data
 
+        | ControlInterfaceMsg.Record roomNum -> 
+            { data with RoomStates = startRecording data roomNum |> updateRoomList data.RoomStates }
+
+        | ControlInterfaceMsg.Reset roomNum -> 
+            { data with RoomStates = reset data roomNum |> updateRoomList data.RoomStates }
+            
+        | ControlInterfaceMsg.StartPreview roomNum -> 
+            { data with RoomStates = startPreview data roomNum |> updateRoomList data.RoomStates }                      
+
+        | ControlInterfaceMsg.StartStreaming roomNum -> 
+            { data with RoomStates = startStreaming data roomNum |> updateRoomList data.RoomStates }
+        
     /// The control interface agent.  Handles room state requests
     let controlInterface agentRepo (defaultRoomStates:Room list) =     
         Agent<ControlInterfaceMsg>.Start(fun inbox ->
@@ -103,7 +137,7 @@ module ControlInterface =
                async {
                     let! msg = inbox.Receive()
                     
-                    let newState = processControlMessage state msg
+                    let newState = processControlMessageState state msg
 
                     return! loop newState
                }

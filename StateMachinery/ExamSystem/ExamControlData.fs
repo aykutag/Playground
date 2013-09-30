@@ -1,6 +1,7 @@
 ﻿namespace ExamSystem
 
 open System
+open ExamSystem
 open System.Net.Sockets
 
 [<AutoOpen>]
@@ -20,17 +21,17 @@ module ExamControlData =
     type ControlInterfaceMsg = 
         | Connect of TcpClient
         | Disconnect of TcpClient
-        | Broadcast of string     
+        | Broadcast of string   
+        | BroadcastTo of TcpClient * string  
         | Shutdown
-        | GetRoom of RoomId
+        | GetRoom of RoomId * AsyncReplyChannel<StateManager.Room>
         | Advance of RoomId
         | Reverse of RoomId
         | AddParticipant of (RoomId * ParticipantId)
-
-    and ReplyType = 
-        | RoomReply
-
-    type ControlRequest = ControlInterfaceMsg * AsyncReplyChannel<ReplyType option>
+        | Record of RoomId
+        | Reset of RoomId
+        | StartPreview of RoomId        
+        | StartStreaming of RoomId
 
     type GlobalMsg = 
         | Broadcast of string

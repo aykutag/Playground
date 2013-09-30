@@ -20,6 +20,7 @@ let defaultRoomStates() =
                                     ConsumedStates = []; 
                                     CurrentState = State.Empty 
                                  } 
+                        RecorderStatus = NoStatus
                       }
 
     List.init 20 emptyRoom
@@ -63,8 +64,18 @@ let main argv =
 
     printfn "press any key to stop..."
     
+    async {
+        while true do
+            do! Async.Sleep 1000
+
+            let room = agentRepos.Control.PostAndReply (fun chan -> ControlInterfaceMsg.GetRoom (1, chan))
+
+            printfn "%A" room        
+    } |> Async.Start 
+
     Console.ReadKey() |> ignore
 
     dispose disposable
+
     
     0

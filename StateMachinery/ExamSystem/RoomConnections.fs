@@ -16,7 +16,7 @@ module RoomConnections =
     open ExamSystem.NetworkUtils
     open ExamSystem.CommunicationProtocol
 
-    type RoomAgentState = {
+    type private RoomAgentState = {
         Connections : TcpClient list
         AgentRepo : AgentRepo
         Inbox : Agent<RoomConnMsg>
@@ -25,7 +25,7 @@ module RoomConnections =
 
     /// Sits on the client's socket stream and broadcasts its messages
     /// to everyone else in the room
-    let rec processClientData (roomConn:Agent<RoomConnMsg>) client = 
+    let rec private processClientData (roomConn:Agent<RoomConnMsg>) client = 
         async{
             do! Async.SwitchToNewThread() 
             try
@@ -35,9 +35,9 @@ module RoomConnections =
                 | exn -> roomConn.Post (RoomConnMsg.Disconnect client)
         }
 
-    let postDisconnect (inbox:Agent<RoomConnMsg>) client = inbox.Post (RoomConnMsg.Disconnect client)
+    let private postDisconnect (inbox:Agent<RoomConnMsg>) client = inbox.Post (RoomConnMsg.Disconnect client)
 
-    let processRoomMsg state = function        
+    let private processRoomMsg state = function        
         | RoomConnMsg.Connect client    ->
             state.AgentRepo.Global |> post (GlobalMsg.Broadcast <| sprintf "Client connected to room %d" state.RoomId)
                             
@@ -49,9 +49,7 @@ module RoomConnections =
 
         | RoomConnMsg.Disconnect client -> 
             client.Close()
-                                
-            printfn "Client disconnected from room %d" state.RoomId
-
+            
             { state with Connections = state.Connections |> removeTcp <| client }
 
         | RoomConnMsg.Broadcast msg -> 
@@ -64,6 +62,7 @@ module RoomConnections =
 
         | RoomConnMsg.Shutdown -> 
             "Shutting down" |> strToBytes |> broadcast state.Connections |> ignore
+            
             List.iter closeClient state.Connections
                                 
             { state with Connections = [] }

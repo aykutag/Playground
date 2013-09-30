@@ -49,9 +49,9 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExamSystem.fs" />
     <Compile Include="ExamControlData.fs" />
     <Compile Include="Utils.fs" />
-    <Compile Include="ExamSystem.fs" />
     <Compile Include="CommunicationProtocol.fs" />
     <Compile Include="ControlInterface.fs" />
     <Compile Include="RoomConnections.fs" />

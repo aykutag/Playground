@@ -13,8 +13,15 @@ module Utils =
 module NetworkUtils =
     
     let post msg (mailBox:Agent<_>) = mailBox.Post msg
-    let start  (mailBox:Agent<_>) = mailBox.Start()
-    
+
+    let postAsyncIgnore msg (mailBox:Agent<_>) = 
+        mailBox.PostAndAsyncReply (fun chan -> msg, chan)
+            |> Async.Ignore
+            |> Async.Start
+
+    let postAndAsyncReply msg (mailBox:Agent<_>) = mailBox.PostAndAsyncReply(fun channel -> msg channel)
+
+    let start  (mailBox:Agent<_>) = mailBox.Start()    
 
     let closeClient (client:TcpClient) = client.Close()
 
@@ -31,7 +38,6 @@ module NetworkUtils =
                 false
 
     let strToBytes (str:string) = System.Text.ASCIIEncoding.ASCII.GetBytes str
-
     
     let broadcast clients msg : (FailedClients * SucceedClients) = 
         List.fold(fun (failed, succeeded) client ->                     

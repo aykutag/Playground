@@ -63,7 +63,6 @@ module CommunicationProtocol =
     let readUInt16 client   = client |> num2Bytes |> toInt16
     let readByte client     = client |> readNBytes 1 |> toArr |> Seq.head
 
-
     let header client = client |> readNBytes 9 |> toArr |> System.Text.ASCIIEncoding.UTF8.GetString    
 
     /// Async worker to say whether a socket is connected or not
@@ -137,6 +136,26 @@ module CommunicationProtocol =
     let (|QueryRoom|_|) (str:string) = 
         if str.StartsWith("query ") then 
             str.Replace("query ","").Trim() |> Convert.ToInt32 |> Some
+        else None
+
+    let (|ResetRoom|_|) (str:string) = 
+        if str.StartsWith("reset ") then 
+            str.Replace("reset ","").Trim() |> Convert.ToInt32 |> Some
+        else None
+
+    let (|StartStreaming|_|) (str:string) = 
+        if str.StartsWith("stream ") then 
+            str.Replace("stream ","").Trim() |> Convert.ToInt32 |> Some
+        else None
+
+    let (|StartPreview|_|) (str:string) = 
+        if str.StartsWith("preview ") then 
+            str.Replace("preview ","").Trim() |> Convert.ToInt32 |> Some
+        else None
+
+    let (|Record|_|) (str:string) = 
+        if str.StartsWith("record ") then 
+            str.Replace("record ","").Trim() |> Convert.ToInt32 |> Some
         else None
 
     /// Checks the header sequence to see 

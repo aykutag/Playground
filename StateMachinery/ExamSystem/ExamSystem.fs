@@ -28,7 +28,15 @@ module StateManager =
                         CurrentState: State
                       }
 
-    type Room = { RoomId: int; States: RoomStates }
+    type RecorderStatus = 
+        | NoStatus
+        | Recording
+        | Streaming
+        | Preview
+
+    type Room = { RoomId: int; 
+                  States: RoomStates;
+                  RecorderStatus: RecorderStatus}
 
     let roomString room = sprintf "%A" room
 
@@ -52,6 +60,8 @@ module StateManager =
                 }        
             | [] -> states
 
+    let findRoom roomId rooms = List.find (fun (r:Room) -> r.RoomId = roomId) rooms
+    
     let findRoomAndApply step roomId rooms = 
-        let room = List.find (fun (r:Room) -> r.RoomId = roomId) rooms
+        let room = findRoom roomId rooms 
         (room, step room.States)
