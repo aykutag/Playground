@@ -33,6 +33,29 @@ module ControlInterface =
                 | exn -> controlConn.Post (ControlInterfaceMsg.Disconnect client)
         }
 
+    let shutdown connections =         
+        "Shutting down" |> strToBytes |> broadcast connections |> ignore
+        List.iter closeClient connections
+        ([], [])
+
+
+    let getRoom connections rooms roomNum (inbox:Agent<ControlInterfaceMsg>) =         
+        let room = List.find (fun (r:Room) -> r.RoomId = roomNum) rooms
+                                
+        inbox.Post (ControlInterfaceMsg.Broadcast (roomString room))
+
+        (connections, rooms)
+
+    let updateRoomState agentRepo connections rooms roomNum description step = 
+        let (room, newStates) = (roomNum, rooms) ||> findRoomAndApply step                    
+                                
+        postToRoom (agentRepo()) roomNum (RoomConnMsg.Broadcast <| description)
+
+        (connections, rooms |> updateRoomsWithState newStates room)
+
+    let addParticipant agentRepo connections rooms roomNum participantId =         
+        postToRoom (agentRepo()) roomNum (RoomConnMsg.Broadcast <| sprintf "particpiant %d add to room %d" participantId roomNum)
+        (connections, rooms)                        
 
     /// The control interface agent.  Handles room state requests
     let controlInterface agentRepo (defaultRoomStates:Room list) =     
@@ -43,7 +66,7 @@ module ControlInterface =
             let rec loop connections rooms = 
                async {
                     let! msg = inbox.Receive()
-
+                    
                     let (conn, newRooms) = 
                         match msg with 
                             | ControlInterfaceMsg.Connect client ->     
@@ -59,35 +82,18 @@ module ControlInterface =
 
                             | ControlInterfaceMsg.Broadcast str -> (str |> broadcastStr connections |> snd, rooms)
 
-                            | ControlInterfaceMsg.Shutdown -> 
-                                "Shutting down" |> strToBytes |> broadcast connections |> ignore
-                                List.iter closeClient connections
-                                ([], [])
+                            | ControlInterfaceMsg.Shutdown -> shutdown connections
 
-                            | ControlInterfaceMsg.GetRoom roomNum ->
-                                let room = List.find (fun (r:Room) -> r.RoomId = roomNum) rooms
-                                
-                                inbox.Post (ControlInterfaceMsg.Broadcast (roomString room))
+                            | ControlInterfaceMsg.GetRoom roomNum -> inbox |> getRoom connections rooms roomNum
 
-                                (connections, rooms)
-
-                            | ControlInterfaceMsg.Advance roomNum ->
-                                let (room, newStates) = (roomNum, rooms) ||> findRoomAndApply advance                    
-                                
-                                postToRoom (agentRepo()) roomNum (RoomConnMsg.Broadcast <| sprintf "room %d advnced" roomNum)
-
-                                (connections, rooms |> updateRoomsWithState newStates room)
+                            | ControlInterfaceMsg.Advance roomNum -> 
+                                updateRoomState agentRepo connections rooms roomNum (sprintf "room %d advnced" roomNum) advance
 
                             | ControlInterfaceMsg.Reverse roomNum ->
-                                let (room, newStates) = (roomNum, rooms) ||> findRoomAndApply reverse   
-                                                  
-                                postToRoom (agentRepo()) roomNum (RoomConnMsg.Broadcast <| sprintf "room %d reversed" roomNum)
-                                
-                                (connections, rooms |> updateRoomsWithState newStates room)
+                                updateRoomState agentRepo connections rooms roomNum (sprintf "room %d reversed" roomNum) reverse                               
 
-                            | ControlInterfaceMsg.AddParticipant (roomNum, participantId) ->
-                                postToRoom (agentRepo()) roomNum (RoomConnMsg.Broadcast <| sprintf "particpiant %d add to room %d" participantId roomNum)
-                                (connections, rooms)                        
+                            | ControlInterfaceMsg.AddParticipant (roomNum, participantId) -> 
+                                addParticipant agentRepo connections rooms roomNum participantId 
 
                     return! loop conn newRooms
                }
