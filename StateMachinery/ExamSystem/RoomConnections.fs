@@ -16,11 +16,18 @@ module RoomConnections =
     open ExamSystem.NetworkUtils
     open ExamSystem.CommunicationProtocol
 
+    type RoomAgentState = {
+        Connections : TcpClient list
+        AgentRepo : AgentRepo
+        Inbox : Agent<RoomConnMsg>
+        RoomId : int
+    }
 
     /// Sits on the client's socket stream and broadcasts its messages
     /// to everyone else in the room
     let rec processClientData (roomConn:Agent<RoomConnMsg>) client = 
         async{
+            do! Async.SwitchToNewThread() 
             try
                 for message in client |> packets do
                     roomConn.Post (BroadcastExcept (client, message))
@@ -28,53 +35,60 @@ module RoomConnections =
                 | exn -> roomConn.Post (RoomConnMsg.Disconnect client)
         }
 
-    /// An agent for a particular room
-    let roomConnection agentRepo roomId = 
-        new Agent<RoomConnMsg>(
-            fun inbox ->        
-        
-            let postDisconnect client = inbox.Post (RoomConnMsg.Disconnect client)
+    let postDisconnect (inbox:Agent<RoomConnMsg>) client = inbox.Post (RoomConnMsg.Disconnect client)
 
-            let rec loop connections =
-                async {   
-                    //printfn "Executing room loop %d" roomId
-                    let! request = inbox.Receive() 
-                    let originalConnectionSize = List.length connections                              
-                    let newConnections = 
-                        match request with
-                            | RoomConnMsg.Connect client    ->
-                                agentRepo().Global |> post (GlobalMsg.Broadcast <| sprintf "Client connected to room %d" roomId)
+    let processRoomMsg state = function        
+        | RoomConnMsg.Connect client    ->
+            state.AgentRepo.Global |> post (GlobalMsg.Broadcast <| sprintf "Client connected to room %d" state.RoomId)
                             
-                                monitor isConnected postDisconnect client |> Async.Start
+            monitor isConnected (postDisconnect state.Inbox) client |> Async.Start
 
-                                (inbox, client) |> applyTupleTo [processClientData] 
-                                                |> List.iter Async.Start
+            (state.Inbox, client) ||> processClientData |> Async.Start
 
-                                client::connections
+            { state with Connections = client::state.Connections }
 
-                            | RoomConnMsg.Disconnect client -> 
-                                client.Close()
+        | RoomConnMsg.Disconnect client -> 
+            client.Close()
                                 
-                                printfn "Client disconnected from room %d" roomId
+            printfn "Client disconnected from room %d" state.RoomId
 
-                                connections |> removeTcp <| client
+            { state with Connections = state.Connections |> removeTcp <| client }
 
-                            | RoomConnMsg.Broadcast msg -> msg |> broadcastStr connections |> snd
+        | RoomConnMsg.Broadcast msg -> 
+            { state with Connections = msg |> broadcastStr state.Connections |> snd }
 
-                            | RoomConnMsg.BroadcastExcept (client, msg) ->                             
-                                let successFull = msg |> broadcastStr ((List.filter ((<>) client)) connections) |> snd 
-                                client::successFull
+        | RoomConnMsg.BroadcastExcept (client, msg) ->                             
+            let successFull = msg |> broadcastStr ((List.filter ((<>) client)) state.Connections) |> snd 
+                                
+            { state with Connections = client::successFull }
 
-                            | RoomConnMsg.Shutdown -> 
-                                "Shutting down" |> strToBytes |> broadcast connections |> ignore
-                                List.iter closeClient connections
-                                []
+        | RoomConnMsg.Shutdown -> 
+            "Shutting down" |> strToBytes |> broadcast state.Connections |> ignore
+            List.iter closeClient state.Connections
+                                
+            { state with Connections = [] }
 
-                    if originalConnectionSize <> List.length newConnections then
-                        printfn "total clients %d" <| List.length newConnections
+    /// An agent for a particular room
+    let roomConnection agentRepo roomId = new Agent<RoomConnMsg>(fun inbox ->                
+        let rec loop state =
+            async {   
+                //printfn "Executing room loop %d" roomId
+                let! msg = inbox.Receive() 
 
-                    return! loop newConnections
-                }
-            loop [])
+                let originalConnectionSize = List.length state.Connections                              
+                    
+                let newState = processRoomMsg state msg
+
+                if originalConnectionSize <> List.length newState.Connections then
+                    printfn "total clients %d" <| List.length newState.Connections
+
+                return! loop newState
+            }
+
+        loop {  Connections = [] 
+                AgentRepo = agentRepo()
+                RoomId = roomId
+                Inbox = inbox
+                })
     
   
