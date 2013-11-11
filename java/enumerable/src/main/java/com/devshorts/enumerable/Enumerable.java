@@ -5,21 +5,25 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public class Enumerable<TSource, TResult> implements Iterator<TResult>, Iterable<TResult> {
 
     protected Iterator<TSource> source;
+    protected Supplier<Iterator<TSource>> generator;
 
     public static <TSource> Enumerable<TSource, TSource> init(Iterable<TSource> source){
         return new Enumerable<>(source);
     }
 
-    public Enumerable(Iterator<TSource> source){
-        this.source = source;
+    public Enumerable(Iterable<TSource> input) {
+        generator = () -> input.iterator();
+
+        reset();
     }
 
-    public Enumerable(Iterable<TSource> source) {
-        this.source = source.iterator();
+    protected void reset(){
+        source = generator.get();
     }
 
     public <TResult2> MapEnumerable<TResult, TResult2> map(Function<TResult, TResult2> mapFunc){
@@ -46,8 +50,12 @@ public class Enumerable<TSource, TResult> implements Iterator<TResult>, Iterable
         return new SkipEnumerable(this, n);
     }
 
+    public <TProjection> OrderByEnumerable<TResult> orderBy(Function<TSource, TProjection> projection){
+        return new OrderByEnumerable(this, projection);
+    }
+
     public List<TResult> toList(){
-        List<TResult> r = new ArrayList<TResult>();
+        List<TResult> r = new ArrayList<>();
 
         for(TResult item : this){
             r.add(item);
@@ -58,6 +66,8 @@ public class Enumerable<TSource, TResult> implements Iterator<TResult>, Iterable
 
     @Override
     public Iterator<TResult> iterator() {
+        reset();
+
         return this;
     }
 

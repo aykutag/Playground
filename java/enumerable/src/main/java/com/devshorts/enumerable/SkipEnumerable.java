@@ -12,7 +12,7 @@ import java.util.Iterator;
 public class SkipEnumerable<TSource> extends Enumerable<TSource, TSource> {
     private int skipNum;
 
-    public SkipEnumerable(Iterator<TSource> source, int n){
+    public SkipEnumerable(Iterable<TSource> source, int n){
         super(source);
         skipNum = n;
     }

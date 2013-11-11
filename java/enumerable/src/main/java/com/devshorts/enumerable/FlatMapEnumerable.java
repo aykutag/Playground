@@ -14,7 +14,7 @@ import java.util.function.Function;
 public class FlatMapEnumerable<TSource, TResult> extends Enumerable<TSource, TResult> {
     private Function<TSource, List<TResult>> flatMapper;
 
-    public FlatMapEnumerable(Iterator<TSource> source, Function<TSource, List<TResult>> flatMapper) {
+    public FlatMapEnumerable(Iterable<TSource> source, Function<TSource, List<TResult>> flatMapper) {
         super(source);
         this.flatMapper = flatMapper;
     }

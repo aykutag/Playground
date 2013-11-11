@@ -12,7 +12,7 @@ import java.util.Iterator;
 public class TakeEnumerable<TSource> extends Enumerable<TSource, TSource>{
     private int takeNum;
 
-    public TakeEnumerable(Iterator<TSource> results, int n) {
+    public TakeEnumerable(Iterable<TSource> results, int n) {
         super(results);
         takeNum = n;
     }

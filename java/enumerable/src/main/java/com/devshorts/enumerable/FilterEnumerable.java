@@ -9,7 +9,7 @@ public class FilterEnumerable<TSource> extends Enumerable<TSource, TSource>{
     private TSource nextItem = null;
     private Predicate<TSource> filterFunc;
 
-    public FilterEnumerable(Iterator<TSource> input, Predicate<TSource> filterFunc) {
+    public FilterEnumerable(Iterable<TSource> input, Predicate<TSource> filterFunc) {
         super(input);
         this.filterFunc = filterFunc;
     }

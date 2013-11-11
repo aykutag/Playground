@@ -14,7 +14,7 @@ public class TakeWhileEnumerable<TSource> extends Enumerable<TSource, TSource> {
     private Predicate<TSource> predicate;
     private TSource nextItem;
 
-    public TakeWhileEnumerable(Iterator<TSource> results, Predicate<TSource> predicate) {
+    public TakeWhileEnumerable(Iterable<TSource> results, Predicate<TSource> predicate) {
         super(results);
         this.predicate = predicate;
     }

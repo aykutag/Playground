@@ -6,14 +6,14 @@ import static java.util.Arrays.asList;
 
 public class Main{
     public static void main(String[] arsg) throws InterruptedException, ExecutionException {
-        List<String> strings = asList("o", "ba", "baz", "booo");
+        List<String> strings = asList("oooo", "ba", "baz", "booo");
 
-        List<String> items = Enumerable.init(strings)
-                .skip(1)
-                .take(20)
-                .takeWhile(i -> i.length() <= 3)
-                .map(i -> "three!")
-                .toList();
+        Enumerable<String, String> items = Enumerable.init(strings)
+                                                     .orderBy(i -> i.length());
+
+        for(String x : items){
+            System.out.println(x);
+        }
 
         for(String x : items){
             System.out.println(x);
