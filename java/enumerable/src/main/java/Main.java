@@ -8,14 +8,16 @@ public class Main{
     public static void main(String[] arsg) throws InterruptedException, ExecutionException {
         List<String> strings = asList("oooo", "ba", "baz", "booo");
 
-        Enumerable<String, String> items = Enumerable.init(strings)
-                                                     .orderBy(i -> i.length());
+        Enumerable<Integer> items = Enumerable.init(strings)
+                                                .orderBy(i -> i.length())
+                                                .map(i -> i.length())
+                                                .filter(i -> i == 2);
 
-        for(String x : items){
+        for(Integer x : items){
             System.out.println(x);
         }
 
-        for(String x : items){
+        for(Integer x : items){
             System.out.println(x);
         }
     }

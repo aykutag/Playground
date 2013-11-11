@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
 
-public class OrderByEnumerable<TSource> extends Enumerable<TSource, TSource> {
+public class OrderByEnumerable<TSource> extends Enumerable<TSource> {
     private class ProjectAndKeep<T extends Comparable, Y> implements Comparable<T>{
         public T projection;
         public Y value;

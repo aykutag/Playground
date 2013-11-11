@@ -11,7 +11,7 @@ import java.util.function.Function;
  * Time: 1:04 PM
  * To change this template use File | Settings | File Templates.
  */
-public class FlatMapEnumerable<TSource, TResult> extends Enumerable<TSource, TResult> {
+public class FlatMapEnumerable<TSource, TResult> extends MapEnumerable<TSource, TResult> {
     private Function<TSource, List<TResult>> flatMapper;
 
     public FlatMapEnumerable(Iterable<TSource> source, Function<TSource, List<TResult>> flatMapper) {

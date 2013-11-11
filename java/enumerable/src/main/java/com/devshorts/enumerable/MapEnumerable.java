@@ -1,6 +1,8 @@
 package com.devshorts.enumerable;
 
+import java.util.Iterator;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Created with IntelliJ IDEA.
@@ -9,12 +11,22 @@ import java.util.function.Function;
  * Time: 5:11 PM
  * To change this template use File | Settings | File Templates.
  */
-public class MapEnumerable<TSource, TResult> extends Enumerable<TSource, TResult> {
+public class MapEnumerable<TSource, TResult> extends Enumerable<TResult> {
 
-    private final Function<TSource, TResult> predicate;
+    protected Iterator<TSource> source;
+    protected Supplier<Iterator<TSource>> generator;
+    private Function<TSource, TResult> predicate;
+
+
+    public MapEnumerable(Iterable<TSource> input){
+        generator = () -> input.iterator();
+
+        source = generator.get();
+    }
 
     public MapEnumerable(Iterable<TSource> source, Function<TSource, TResult> map) {
-        super(source);
+        this(source);
+
         this.predicate = map;
     }
 
@@ -30,5 +42,17 @@ public class MapEnumerable<TSource, TResult> extends Enumerable<TSource, TResult
         }
 
         return predicate.apply(source.next());
+    }
+
+    @Override
+    protected void reset(){
+        source = generator.get();
+    }
+
+    @Override
+    public Iterator<TResult> iterator(){
+        reset();
+
+        return this;
     }
 }

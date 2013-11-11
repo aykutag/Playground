@@ -9,7 +9,7 @@ import java.util.Iterator;
  * Time: 4:46 PM
  * To change this template use File | Settings | File Templates.
  */
-public class TakeEnumerable<TSource> extends Enumerable<TSource, TSource>{
+public class TakeEnumerable<TSource> extends Enumerable<TSource>{
     private int takeNum;
 
     public TakeEnumerable(Iterable<TSource> results, int n) {

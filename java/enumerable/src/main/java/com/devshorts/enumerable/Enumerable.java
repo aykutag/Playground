@@ -7,14 +7,16 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public class Enumerable<TSource, TResult> implements Iterator<TResult>, Iterable<TResult> {
+public class Enumerable<TSource> implements Iterator<TSource>, Iterable<TSource> {
 
     protected Iterator<TSource> source;
     protected Supplier<Iterator<TSource>> generator;
 
-    public static <TSource> Enumerable<TSource, TSource> init(Iterable<TSource> source){
+    public static <TSource> Enumerable<TSource> init(Iterable<TSource> source){
         return new Enumerable<>(source);
     }
+
+    public Enumerable(){}
 
     public Enumerable(Iterable<TSource> input) {
         generator = () -> input.iterator();
@@ -26,38 +28,38 @@ public class Enumerable<TSource, TResult> implements Iterator<TResult>, Iterable
         source = generator.get();
     }
 
-    public <TResult2> MapEnumerable<TResult, TResult2> map(Function<TResult, TResult2> mapFunc){
+    public <TResult> MapEnumerable<TSource, TResult> map(Function<TSource, TResult> mapFunc){
         return new MapEnumerable<>(this, i -> mapFunc.apply(i));
     }
 
-    public <TResult2> Enumerable<TResult, TResult2> flatMap(Function<TResult, List<TResult2>> mapFunc){
+    public <TResult> FlatMapEnumerable<TSource, TResult> flatMap(Function<TSource, List<TResult>> mapFunc){
         return new FlatMapEnumerable<>(this, i -> mapFunc.apply(i));
     }
 
-    public FilterEnumerable<TResult> filter(Predicate<TResult> filterFunc){
+    public FilterEnumerable<TSource> filter(Predicate<TSource> filterFunc){
         return new FilterEnumerable<>(this, filterFunc);
     }
 
-    public TakeEnumerable<TResult> take(int n){
+    public TakeEnumerable<TSource> take(int n){
         return new TakeEnumerable(this, n);
     }
 
-    public TakeWhileEnumerable<TResult> takeWhile(Predicate<TResult> predicate){
+    public TakeWhileEnumerable<TSource> takeWhile(Predicate<TSource> predicate){
         return new TakeWhileEnumerable(this, predicate);
     }
 
-    public SkipEnumerable<TResult> skip(int n){
+    public SkipEnumerable<TSource> skip(int n){
         return new SkipEnumerable(this, n);
     }
 
-    public <TProjection> OrderByEnumerable<TResult> orderBy(Function<TSource, TProjection> projection){
+    public <TProjection> OrderByEnumerable<TSource> orderBy(Function<TSource, TProjection> projection){
         return new OrderByEnumerable(this, projection);
     }
 
-    public List<TResult> toList(){
-        List<TResult> r = new ArrayList<>();
+    public List<TSource> toList(){
+        List<TSource> r = new ArrayList<>();
 
-        for(TResult item : this){
+        for(TSource item : this){
             r.add(item);
         }
 
@@ -65,7 +67,7 @@ public class Enumerable<TSource, TResult> implements Iterator<TResult>, Iterable
     }
 
     @Override
-    public Iterator<TResult> iterator() {
+    public Iterator<TSource> iterator() {
         reset();
 
         return this;
@@ -77,7 +79,7 @@ public class Enumerable<TSource, TResult> implements Iterator<TResult>, Iterable
     }
 
     @Override
-    public TResult next() {
-        return (TResult)source.next();
+    public TSource next() {
+        return source.next();
     }
 }

@@ -3,7 +3,7 @@ package com.devshorts.enumerable;
 import java.util.Iterator;
 import java.util.function.Predicate;
 
-public class FilterEnumerable<TSource> extends Enumerable<TSource, TSource>{
+public class FilterEnumerable<TSource> extends Enumerable<TSource>{
 
     private int idx = 0;
     private TSource nextItem = null;

@@ -24,8 +24,8 @@ Currently you can already do this using the following example:
 ```java
 List<String> strings = asList("oooo", "ba", "baz", "booo");            
                                                                        
-Enumerable<String, String> items = Enumerable.init(strings)            
-                                             .orderBy(i -> i.length());
+Enumerable<String> items = Enumerable.init(strings)            
+                                     .orderBy(i -> i.length());
                                                                        
 for(String x : items){                                                 
     System.out.println(x);                                             

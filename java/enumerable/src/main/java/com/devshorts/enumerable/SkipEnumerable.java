@@ -9,7 +9,7 @@ import java.util.Iterator;
  * Time: 4:59 PM
  * To change this template use File | Settings | File Templates.
  */
-public class SkipEnumerable<TSource> extends Enumerable<TSource, TSource> {
+public class SkipEnumerable<TSource> extends Enumerable<TSource> {
     private int skipNum;
 
     public SkipEnumerable(Iterable<TSource> source, int n){
