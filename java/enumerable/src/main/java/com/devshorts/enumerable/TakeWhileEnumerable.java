@@ -22,7 +22,7 @@ public class TakeWhileEnumerable<TSource> extends Enumerable<TSource> {
     @Override
     public boolean hasNext(){
         if(source.hasNext()){
-            nextItem = source.next();
+            nextItem = (TSource)source.next();
 
             return predicate.test(nextItem);
         }

@@ -17,7 +17,7 @@ public class FilterEnumerable<TSource> extends Enumerable<TSource>{
     @Override
     public boolean hasNext() {
         while(source.hasNext()){
-            nextItem = source.next();
+            nextItem = (TSource)source.next();
             idx++;
             if(filterFunc.test(nextItem)){
                 return true;

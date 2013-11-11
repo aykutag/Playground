@@ -9,8 +9,8 @@ public class Main{
         List<String> strings = asList("oooo", "ba", "baz", "booo");
 
         Enumerable<Integer> items = Enumerable.init(strings)
-                                                .orderBy(i -> i.length())
-                                                .map(i -> i.length())
+                                                .orderBy(String::length)
+                                                .map(String::length)
                                                 .filter(i -> i == 2);
 
         for(Integer x : items){

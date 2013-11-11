@@ -9,8 +9,8 @@ import java.util.function.Supplier;
 
 public class Enumerable<TSource> implements Iterator<TSource>, Iterable<TSource> {
 
-    protected Iterator<TSource> source;
-    protected Supplier<Iterator<TSource>> generator;
+    protected Iterator source;
+    protected ResettableIterator resettableIterator;
 
     public static <TSource> Enumerable<TSource> init(Iterable<TSource> source){
         return new Enumerable<>(source);
@@ -19,13 +19,15 @@ public class Enumerable<TSource> implements Iterator<TSource>, Iterable<TSource>
     public Enumerable(){}
 
     public Enumerable(Iterable<TSource> input) {
-        generator = () -> input.iterator();
+        resettableIterator = new ResettableIterator(input);
 
         reset();
     }
 
     protected void reset(){
-        source = generator.get();
+        resettableIterator.reset();
+
+        source = resettableIterator.get();
     }
 
     public <TResult> MapEnumerable<TSource, TResult> map(Function<TSource, TResult> mapFunc){
@@ -80,6 +82,6 @@ public class Enumerable<TSource> implements Iterator<TSource>, Iterable<TSource>
 
     @Override
     public TSource next() {
-        return source.next();
+        return (TSource)source.next();
     }
 }

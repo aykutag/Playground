@@ -25,7 +25,7 @@ public class FlatMapEnumerable<TSource, TResult> extends MapEnumerable<TSource, 
     @Override
     public boolean hasNext() {
         if(_bufferedResult == null && source.hasNext()){
-            _bufferedResult = flatMapper.apply(source.next());
+            _bufferedResult = flatMapper.apply((TSource)source.next());
 
             idx = 0;
 

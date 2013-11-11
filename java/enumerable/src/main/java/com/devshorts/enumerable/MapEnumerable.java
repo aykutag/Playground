@@ -13,15 +13,11 @@ import java.util.function.Supplier;
  */
 public class MapEnumerable<TSource, TResult> extends Enumerable<TResult> {
 
-    protected Iterator<TSource> source;
-    protected Supplier<Iterator<TSource>> generator;
     private Function<TSource, TResult> predicate;
 
 
     public MapEnumerable(Iterable<TSource> input){
-        generator = () -> input.iterator();
-
-        source = generator.get();
+        resettableIterator = new ResettableIterator(input);
     }
 
     public MapEnumerable(Iterable<TSource> source, Function<TSource, TResult> map) {
@@ -41,12 +37,7 @@ public class MapEnumerable<TSource, TResult> extends Enumerable<TResult> {
             return (TResult)source.next();
         }
 
-        return predicate.apply(source.next());
-    }
-
-    @Override
-    protected void reset(){
-        source = generator.get();
+        return predicate.apply((TSource)source.next());
     }
 
     @Override
