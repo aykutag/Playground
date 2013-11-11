@@ -36,8 +36,9 @@ And stuff like
 
 ```java
 List<Integer> items = Enumerable.init(strings)            
-                                .orderBy(i -> i.length()) 
-                                .map(i -> i.length())     
+					            .orderBy(String::length)
+					            .map(String::length)    
+					            .filter(i -> i == 2)     
                                 .toList();                
 ```
 
