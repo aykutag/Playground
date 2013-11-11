@@ -13,3 +13,6 @@ obj/
 *.ReSharper.user
 *.pbx
 *.pdb
+.idea/
+*.class
+maven-compiler-plugin/
