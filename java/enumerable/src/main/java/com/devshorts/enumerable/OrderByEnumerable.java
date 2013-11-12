@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.function.Function;
 
 public class OrderByEnumerable<TSource> extends Enumerable<TSource> {
-    private class ProjectAndKeep<T extends Comparable, Y> implements Comparable<T>{
+    private class ProjectionPair<T extends Comparable, Y> implements Comparable<T>{
         public T projection;
         public Y value;
-        public ProjectAndKeep(T projection, Y value){
+        public ProjectionPair(T projection, Y value){
             this.projection = projection;
             this.value = value;
         }
@@ -21,7 +21,7 @@ public class OrderByEnumerable<TSource> extends Enumerable<TSource> {
         }
     }
 
-    private List<ProjectAndKeep> buffer;
+    private List<ProjectionPair> buffer;
     private Function<TSource, ? extends Comparable> projection;
     private Integer idx = 0;
 
@@ -63,7 +63,7 @@ public class OrderByEnumerable<TSource> extends Enumerable<TSource> {
             idx = 0;
 
             buffer = Enumerable.init(list())
-                    .map(value -> new ProjectAndKeep(projection.apply(value), value))
+                    .map(value -> new ProjectionPair(projection.apply(value), value))
                     .toList();
 
             Collections.sort(buffer);

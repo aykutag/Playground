@@ -1,29 +1,27 @@
 package com.devshorts.enumerable;
 
-import java.util.Iterator;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
-/**
- * Created with IntelliJ IDEA.
- * User: anton.kropp
- * Date: 11/11/13
- * Time: 5:11 PM
- * To change this template use File | Settings | File Templates.
- */
 public class MapEnumerable<TSource, TResult> extends Enumerable<TResult> {
 
-    private Function<TSource, TResult> predicate;
+    private Function<TSource, TResult> projection;
 
 
+    /***
+     * Need this constructor for flatMap
+     * @param input
+     */
     public MapEnumerable(Iterable<TSource> input){
-        resettableIterator = new ResettableIterator(input);
+        super(() -> input.iterator());
+
+        // by default the projection is the id function
+        this.projection = i -> (TResult)i;
     }
 
-    public MapEnumerable(Iterable<TSource> source, Function<TSource, TResult> map) {
+    public MapEnumerable(Iterable<TSource> source, Function<TSource, TResult> projection) {
         this(source);
 
-        this.predicate = map;
+        this.projection = projection;
     }
 
     @Override
@@ -33,17 +31,6 @@ public class MapEnumerable<TSource, TResult> extends Enumerable<TResult> {
 
     @Override
     public TResult next() {
-        if(predicate == null){
-            return (TResult)source.next();
-        }
-
-        return predicate.apply((TSource)source.next());
-    }
-
-    @Override
-    public Iterator<TResult> iterator(){
-        reset();
-
-        return this;
+        return projection.apply((TSource)source.next());
     }
 }

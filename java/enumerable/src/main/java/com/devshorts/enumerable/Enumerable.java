@@ -3,29 +3,23 @@ package com.devshorts.enumerable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 public class Enumerable<TSource> implements Iterator<TSource>, Iterable<TSource> {
 
     protected Iterator source;
-    protected ResettableIterator resettableIterator;
+    protected Supplier<Iterator> generator;
 
     public static <TSource> Enumerable<TSource> init(Iterable<TSource> source){
         return new Enumerable<>(source);
     }
 
-    public Enumerable(){}
-
-    public Enumerable(Iterable<TSource> input) {
-        resettableIterator = new ResettableIterator(input);
+    protected Enumerable(Supplier<Iterator> generator){
+        this.generator = generator;
     }
 
-    protected void reset(){
-        resettableIterator.reset();
-
-        source = resettableIterator.get();
+    public Enumerable(Iterable<TSource> input) {
+        this((Supplier<Iterator>) input::iterator);
     }
 
     public <TResult> Enumerable<TResult> map(Function<TSource, TResult> mapFunc){
@@ -41,15 +35,23 @@ public class Enumerable<TSource> implements Iterator<TSource>, Iterable<TSource>
     }
 
     public Enumerable<TSource> take(int n){
-        return new TakeEnumerable(this, n);
+        return new TakeEnumerable<>(this, n);
     }
 
     public Enumerable<TSource> takeWhile(Predicate<TSource> predicate){
-        return new TakeWhileEnumerable(this, predicate);
+        return new TakeWhileEnumerable<>(this, predicate);
     }
 
-    public Enumerable<TSource> skip(int n){
-        return new SkipEnumerable(this, n);
+    public Enumerable<TSource> skip(int skipNum){
+        return new SkipEnumerable<>(this, skipNum);
+    }
+
+    public Enumerable<TSource> iter(Consumer<TSource> action){
+        return new IterEnumerable<>(this, idxPair -> action.accept(idxPair.value));
+    }
+
+    public Enumerable<TSource> iteri(BiConsumer<Integer, TSource> action){
+        return new IterEnumerable<>(this, idxPair -> action.accept(idxPair.index, idxPair.value));
     }
 
     public <TProjection> Enumerable<TSource> orderBy(Function<TSource, TProjection> projection){
@@ -64,6 +66,14 @@ public class Enumerable<TSource> implements Iterator<TSource>, Iterable<TSource>
         }
 
         return r;
+    }
+
+    /**
+     * Iterator methods
+     */
+
+    protected void reset(){
+        source = generator.get();
     }
 
     @Override

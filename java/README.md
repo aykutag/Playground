@@ -13,8 +13,10 @@ The goal, to provide
 - TakeWhile
 - Skip
 - SkipWhile
+- Iter
+- Iteri
 
-Functionality that can serve as a general base for functional programming in Java (using JDK 8 with lambdas).
+Functionality that can serve as a general base for functional programming with Iterables in Java (using JDK 8 with lambdas).
 
 Example
 ---

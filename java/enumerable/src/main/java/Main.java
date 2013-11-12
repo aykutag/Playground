@@ -8,17 +8,11 @@ public class Main{
     public static void main(String[] arsg) throws InterruptedException, ExecutionException {
         List<String> strings = asList("oooo", "ba", "baz", "booo");
 
-        Enumerable<Integer> items = Enumerable.init(strings)
-                                                .orderBy(String::length)
-                                                .map(String::length)
-                                                .filter(i -> i == 2);
-
-        for(Integer x : items){
-            System.out.println(x);
-        }
-
-        for(Integer x : items){
-            System.out.println(x);
-        }
+        Enumerable.init(strings)
+            .orderBy(String::length)
+            .map(String::length)
+            .iter(System.out::println)
+            .iteri((indx, length) -> System.out.println(("index" + indx + " length " + length)))
+            .toList();
     }
 }
