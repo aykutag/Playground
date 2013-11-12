@@ -1,7 +1,7 @@
 Java Enumerable
 ----
 
-This is a project to implement .NET style enumerable functions on deferred lazy collections using Java.
+This is an exersize to implement .NET style enumerable functions on deferred lazy collections using Java.
 
 The goal, to provide
 
@@ -16,7 +16,7 @@ The goal, to provide
 - Iter
 - Iteri
 
-Functionality that can serve as a general base for functional programming with Iterables in Java (using JDK 8 with lambdas).
+The functionality already exists with java 8 streams, but this is fun to do :)
 
 Example
 ---
