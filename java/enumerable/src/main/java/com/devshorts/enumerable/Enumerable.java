@@ -20,8 +20,6 @@ public class Enumerable<TSource> implements Iterator<TSource>, Iterable<TSource>
 
     public Enumerable(Iterable<TSource> input) {
         resettableIterator = new ResettableIterator(input);
-
-        reset();
     }
 
     protected void reset(){
@@ -30,31 +28,31 @@ public class Enumerable<TSource> implements Iterator<TSource>, Iterable<TSource>
         source = resettableIterator.get();
     }
 
-    public <TResult> MapEnumerable<TSource, TResult> map(Function<TSource, TResult> mapFunc){
+    public <TResult> Enumerable<TResult> map(Function<TSource, TResult> mapFunc){
         return new MapEnumerable<>(this, i -> mapFunc.apply(i));
     }
 
-    public <TResult> FlatMapEnumerable<TSource, TResult> flatMap(Function<TSource, List<TResult>> mapFunc){
+    public <TResult> Enumerable<TResult> flatMap(Function<TSource, List<TResult>> mapFunc){
         return new FlatMapEnumerable<>(this, i -> mapFunc.apply(i));
     }
 
-    public FilterEnumerable<TSource> filter(Predicate<TSource> filterFunc){
+    public Enumerable<TSource> filter(Predicate<TSource> filterFunc){
         return new FilterEnumerable<>(this, filterFunc);
     }
 
-    public TakeEnumerable<TSource> take(int n){
+    public Enumerable<TSource> take(int n){
         return new TakeEnumerable(this, n);
     }
 
-    public TakeWhileEnumerable<TSource> takeWhile(Predicate<TSource> predicate){
+    public Enumerable<TSource> takeWhile(Predicate<TSource> predicate){
         return new TakeWhileEnumerable(this, predicate);
     }
 
-    public SkipEnumerable<TSource> skip(int n){
+    public Enumerable<TSource> skip(int n){
         return new SkipEnumerable(this, n);
     }
 
-    public <TProjection> OrderByEnumerable<TSource> orderBy(Function<TSource, TProjection> projection){
+    public <TProjection> Enumerable<TSource> orderBy(Function<TSource, TProjection> projection){
         return new OrderByEnumerable(this, projection);
     }
 
