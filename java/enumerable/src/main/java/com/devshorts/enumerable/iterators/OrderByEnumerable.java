@@ -38,12 +38,7 @@ public class OrderByEnumerable<TSource> extends DefaultEnumIterator<TSource> {
 
     @Override
     public boolean hasNext(){
-        Boolean hasNext = idx < buffer.size();
-        if(!hasNext){
-            buffer = null;
-        }
-
-        return hasNext;
+        return idx < buffer.size();
     }
 
     @Override

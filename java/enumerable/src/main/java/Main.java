@@ -15,16 +15,13 @@ public class Main{
 
         Enumerable<String> strings = Enumerable.init(t);
 
-        List<Tuple<Integer, String>> p = strings.zip(strings, (a, b) -> new Tuple<>(a, b))
-                                               .map(i -> i.item2.length())
-                                               .zip(strings, (x, y) -> new Tuple<>(x, y))
-                                               .filter(i -> i.item1 == 4)
-                                               .orderBy(i -> i.item2)
-                                               .toList();
-
-        Iterator<String> x = t.iterator();
-        Iterator<String> y = t.iterator();
-
+        strings.zip(strings, (a, b) -> new Tuple<>(a, b))
+               .map(i -> i.item2.length())
+               .zip(strings, (x, y) -> new Tuple<>(x, y))
+               .orderBy(i -> i.item2)
+               .skipWhile(i -> i.item1 < 4)
+               .iteri((i, elem) -> System.out.println(i + ": " + elem.item1 + " * " + elem.item2))
+               .toList();
     }
 
 }
