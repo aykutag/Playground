@@ -10,10 +10,10 @@ import java.util.function.Function;
  * Time: 1:04 PM
  * To change this template use File | Settings | File Templates.
  */
-public class FlatMapEnumerable<TSource, TResult> extends MapEnumerable<TSource, TResult> {
+public class FlatMapIterator<TSource, TResult> extends MapIterator<TSource, TResult> {
     private Function<TSource, List<TResult>> flatMapper;
 
-    public FlatMapEnumerable(Iterable<TSource> source, Function<TSource, List<TResult>> flatMapper) {
+    public FlatMapIterator(Iterable<TSource> source, Function<TSource, List<TResult>> flatMapper) {
         super(source);
         this.flatMapper = flatMapper;
     }

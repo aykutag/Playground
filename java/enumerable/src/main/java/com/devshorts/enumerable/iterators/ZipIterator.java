@@ -3,12 +3,12 @@ package com.devshorts.enumerable.iterators;
 import java.util.Iterator;
 import java.util.function.BiFunction;
 
-public class ZipEnumerable<T1, T2, T3> extends MapEnumerable<T1, T3>  {
+public class ZipIterator<T1, T2, T3> extends MapIterator<T1, T3> {
 
     private Iterator<T2> zipWithIterator;
     private BiFunction<T1, T2, T3> zipper;
 
-    public ZipEnumerable(Iterable<T1> input, Iterable<T2> zipWith, BiFunction<T1, T2, T3> zipper) {
+    public ZipIterator(Iterable<T1> input, Iterable<T2> zipWith, BiFunction<T1, T2, T3> zipper) {
         super(input);
         this.zipWithIterator = zipWith.iterator();
         this.zipper = zipper;

@@ -1,9 +1,5 @@
 package com.devshorts.enumerable.iterators;
 
-import com.devshorts.enumerable.iterators.DefaultEnumIterator;
-
-import java.util.Iterator;
-
 /**
  * Created with IntelliJ IDEA.
  * User: anton.kropp
@@ -11,10 +7,10 @@ import java.util.Iterator;
  * Time: 4:59 PM
  * To change this template use File | Settings | File Templates.
  */
-public class SkipEnumerable<TSource> extends DefaultEnumIterator<TSource> {
+public class SkipIterator<TSource> extends EnumerableIterator<TSource> {
     private int skipNum;
 
-    public SkipEnumerable(Iterable<TSource> source, int n){
+    public SkipIterator(Iterable<TSource> source, int n){
         super(source);
         skipNum = n;
     }

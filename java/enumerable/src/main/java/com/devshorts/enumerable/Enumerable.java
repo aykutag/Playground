@@ -14,7 +14,7 @@ public class Enumerable<TSource> implements Iterable<TSource> {
     private Supplier<Iterator<TSource>> iteratorGenerator;
 
     public static <TSource> Enumerable<TSource> init(Iterable<TSource> source){
-        return new Enumerable<TSource>(source, () -> new DefaultEnumIterator<>(source));
+        return new Enumerable<TSource>(source, () -> new EnumerableIterator<>(source));
     }
 
     private <T> Enumerable<T> enumerableWithIterator(Supplier<Iterator<T>> generator){
@@ -27,47 +27,47 @@ public class Enumerable<TSource> implements Iterable<TSource> {
     }
 
     public <TResult> Enumerable<TResult> map(Function<TSource, TResult> mapFunc){
-        return enumerableWithIterator(() -> new MapEnumerable<>(this, i -> mapFunc.apply(i)));
+        return enumerableWithIterator(() -> new MapIterator<>(this, i -> mapFunc.apply(i)));
     }
 
     public <TResult> Enumerable<TResult> flatMap(Function<TSource, List<TResult>> mapFunc){
-        return enumerableWithIterator(() -> new FlatMapEnumerable<>(this, i -> mapFunc.apply(i)));
+        return enumerableWithIterator(() -> new FlatMapIterator<>(this, i -> mapFunc.apply(i)));
     }
 
     public Enumerable<TSource> filter(Predicate<TSource> filterFunc){
-        return enumerableWithIterator(() -> new FilterEnumerable<>(this, filterFunc));
+        return enumerableWithIterator(() -> new FilterIterator<>(this, filterFunc));
     }
 
     public Enumerable<TSource> take(int n){
-        return enumerableWithIterator(() -> new TakeEnumerable<>(this, n));
+        return enumerableWithIterator(() -> new TakeIterator<>(this, n));
     }
 
     public Enumerable<TSource> takeWhile(Predicate<TSource> predicate){
-        return enumerableWithIterator(() -> new TakeWhileEnumerable<>(this, predicate));
+        return enumerableWithIterator(() -> new TakeWhileIterator<>(this, predicate));
     }
 
     public Enumerable<TSource> skip(int skipNum){
-        return enumerableWithIterator(() -> new SkipEnumerable<>(this, skipNum));
+        return enumerableWithIterator(() -> new SkipIterator<>(this, skipNum));
     }
 
     public Enumerable<TSource> skipWhile(Predicate<TSource> predicate){
-        return enumerableWithIterator(() -> new SkipWhile<>(this, predicate));
+        return enumerableWithIterator(() -> new SkipWhileIterator<>(this, predicate));
     }
 
     public Enumerable<TSource> iter(Consumer<TSource> action){
-        return enumerableWithIterator(() -> new IterEnumerable<>(this, idxPair -> action.accept(idxPair.value)));
+        return enumerableWithIterator(() -> new IndexIterator<>(this, idxPair -> action.accept(idxPair.value)));
     }
 
     public Enumerable<TSource> iteri(BiConsumer<Integer, TSource> action){
-        return enumerableWithIterator(() -> new IterEnumerable<>(this, idxPair -> action.accept(idxPair.index, idxPair.value)));
+        return enumerableWithIterator(() -> new IndexIterator<>(this, idxPair -> action.accept(idxPair.index, idxPair.value)));
     }
 
     public <TProjection> Enumerable<TSource> orderBy(Function<TSource, TProjection> projection){
-        return enumerableWithIterator(() -> new OrderByEnumerable(this, projection));
+        return enumerableWithIterator(() -> new OrderByIterator(this, projection));
     }
 
     public <TSecond, TProjection> Enumerable<TProjection> zip(Iterable<TSecond> zipWith, BiFunction<TSource, TSecond, TProjection> zipper){
-        return enumerableWithIterator(() -> new ZipEnumerable<>(this, zipWith, zipper));
+        return enumerableWithIterator(() -> new ZipIterator<>(this, zipWith, zipper));
     }
 
     public List<TSource> toList(){

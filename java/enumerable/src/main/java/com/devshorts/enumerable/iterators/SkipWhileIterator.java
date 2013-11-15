@@ -1,11 +1,7 @@
 package com.devshorts.enumerable.iterators;
 
-import com.devshorts.enumerable.iterators.DefaultEnumIterator;
-
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.Stack;
 import java.util.function.Predicate;
 
 /**
@@ -15,14 +11,14 @@ import java.util.function.Predicate;
  * Time: 4:59 PM
  * To change this template use File | Settings | File Templates.
  */
-public class SkipWhile<TSource> extends DefaultEnumIterator<TSource> {
+public class SkipWhileIterator<TSource> extends EnumerableIterator<TSource> {
     private Predicate<TSource> predicate;
 
     private Queue<TSource> nextItems = new LinkedList<>();
 
 
 
-    public SkipWhile(Iterable<TSource> source, Predicate<TSource> predicate){
+    public SkipWhileIterator(Iterable<TSource> source, Predicate<TSource> predicate){
         super(source);
         this.predicate = predicate;
 

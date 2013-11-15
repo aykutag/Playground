@@ -1,15 +1,13 @@
 package com.devshorts.enumerable.iterators;
 
 import com.devshorts.enumerable.Enumerable;
-import com.devshorts.enumerable.iterators.DefaultEnumIterator;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
 
-public class OrderByEnumerable<TSource> extends DefaultEnumIterator<TSource> {
+public class OrderByIterator<TSource> extends EnumerableIterator<TSource> {
     private class ProjectionPair<T extends Comparable, Y> implements Comparable<T>{
         public T projection;
         public Y value;
@@ -28,7 +26,7 @@ public class OrderByEnumerable<TSource> extends DefaultEnumIterator<TSource> {
     private Function<TSource, ? extends Comparable> projection;
     private Integer idx = 0;
 
-    public OrderByEnumerable(Iterable<TSource> source, Function<TSource, ? extends Comparable> projection) {
+    public OrderByIterator(Iterable<TSource> source, Function<TSource, ? extends Comparable> projection) {
         super(source);
 
         this.projection = projection;
