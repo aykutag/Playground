@@ -1,4 +1,6 @@
-package com.devshorts.enumerable;
+package com.devshorts.enumerable.iterators;
+
+import com.devshorts.enumerable.iterators.DefaultEnumIterator;
 
 import java.util.Iterator;
 
@@ -9,7 +11,7 @@ import java.util.Iterator;
  * Time: 4:46 PM
  * To change this template use File | Settings | File Templates.
  */
-public class TakeEnumerable<TSource> extends Enumerable<TSource>{
+public class TakeEnumerable<TSource> extends DefaultEnumIterator<TSource> {
     private int takeNum;
 
     public TakeEnumerable(Iterable<TSource> results, int n) {

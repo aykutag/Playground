@@ -1,6 +1,5 @@
-package com.devshorts.enumerable;
+package com.devshorts.enumerable.iterators;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
 

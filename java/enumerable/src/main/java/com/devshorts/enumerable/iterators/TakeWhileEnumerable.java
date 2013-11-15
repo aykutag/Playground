@@ -1,4 +1,6 @@
-package com.devshorts.enumerable;
+package com.devshorts.enumerable.iterators;
+
+import com.devshorts.enumerable.iterators.DefaultEnumIterator;
 
 import java.util.Iterator;
 import java.util.function.Predicate;
@@ -10,7 +12,7 @@ import java.util.function.Predicate;
  * Time: 4:54 PM
  * To change this template use File | Settings | File Templates.
  */
-public class TakeWhileEnumerable<TSource> extends Enumerable<TSource> {
+public class TakeWhileEnumerable<TSource> extends DefaultEnumIterator<TSource> {
     private Predicate<TSource> predicate;
     private TSource nextItem;
 

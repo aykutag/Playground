@@ -1,9 +1,10 @@
-package com.devshorts.enumerable;
+package com.devshorts.enumerable.iterators;
 
-import java.util.Iterator;
+import com.devshorts.enumerable.iterators.DefaultEnumIterator;
+
 import java.util.function.Predicate;
 
-public class FilterEnumerable<TSource> extends Enumerable<TSource>{
+public class FilterEnumerable<TSource> extends DefaultEnumIterator<TSource> {
 
     private int idx = 0;
     private TSource nextItem = null;

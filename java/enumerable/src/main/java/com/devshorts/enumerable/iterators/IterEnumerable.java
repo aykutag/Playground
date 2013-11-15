@@ -1,10 +1,11 @@
-package com.devshorts.enumerable;
+package com.devshorts.enumerable.iterators;
 
 import com.devshorts.enumerable.data.IndexValuePair;
+import com.devshorts.enumerable.iterators.DefaultEnumIterator;
 
 import java.util.function.Consumer;
 
-public class IterEnumerable<TSource> extends Enumerable<TSource> {
+public class IterEnumerable<TSource> extends DefaultEnumIterator<TSource> {
 
     private int idx = 0;
     private Consumer<IndexValuePair<TSource>> action;

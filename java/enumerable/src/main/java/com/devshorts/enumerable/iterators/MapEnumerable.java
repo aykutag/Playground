@@ -1,18 +1,19 @@
-package com.devshorts.enumerable;
+package com.devshorts.enumerable.iterators;
+
+import com.devshorts.enumerable.iterators.DefaultEnumIterator;
 
 import java.util.function.Function;
 
-public class MapEnumerable<TSource, TResult> extends Enumerable<TResult> {
+public class MapEnumerable<TSource, TResult> extends DefaultEnumIterator<TResult> {
 
     private Function<TSource, TResult> projection;
-
 
     /***
      * Need this constructor for flatMap
      * @param input
      */
-    public MapEnumerable(Iterable<TSource> input){
-        super(() -> input.iterator());
+    protected MapEnumerable(Iterable input){
+        super(input);
 
         // by default the projection is the id function
         this.projection = i -> (TResult)i;

@@ -1,61 +1,68 @@
 package com.devshorts.enumerable;
 
+import com.devshorts.enumerable.iterators.*;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.*;
 
-public class Enumerable<TSource> implements Iterator<TSource>, Iterable<TSource> {
+public class Enumerable<TSource> implements Iterable<TSource> {
 
-    protected Iterator source;
-    protected Supplier<Iterator> generator;
+    private Iterable source;
+    private Supplier<Iterator<TSource>> iteratorGenerator;
 
     public static <TSource> Enumerable<TSource> init(Iterable<TSource> source){
-        return new Enumerable<>(source);
+        return new Enumerable<TSource>(source, () -> new DefaultEnumIterator<>(source));
     }
 
-    protected Enumerable(Supplier<Iterator> generator){
-        this.generator = generator;
+    private <T> Enumerable<T> builder(Supplier<Iterator<T>> generator){
+        return new Enumerable<>(this, generator);
     }
 
-    public Enumerable(Iterable<TSource> input) {
-        this((Supplier<Iterator>) input::iterator);
+    protected Enumerable(Iterable source, Supplier<Iterator<TSource>> iteratorGenerator) {
+        this.source = source;
+        this.iteratorGenerator = iteratorGenerator;
     }
 
     public <TResult> Enumerable<TResult> map(Function<TSource, TResult> mapFunc){
-        return new MapEnumerable<>(this, i -> mapFunc.apply(i));
+        return builder(() -> new MapEnumerable<>(this, i -> mapFunc.apply(i)));
     }
 
     public <TResult> Enumerable<TResult> flatMap(Function<TSource, List<TResult>> mapFunc){
-        return new FlatMapEnumerable<>(this, i -> mapFunc.apply(i));
+        return builder(() -> new FlatMapEnumerable<>(this, i -> mapFunc.apply(i)));
     }
 
     public Enumerable<TSource> filter(Predicate<TSource> filterFunc){
-        return new FilterEnumerable<>(this, filterFunc);
+        return builder(() -> new FilterEnumerable<>(this, filterFunc));
     }
 
     public Enumerable<TSource> take(int n){
-        return new TakeEnumerable<>(this, n);
+        return builder(() -> new TakeEnumerable<>(this, n));
     }
 
     public Enumerable<TSource> takeWhile(Predicate<TSource> predicate){
-        return new TakeWhileEnumerable<>(this, predicate);
+        return builder(() -> new TakeWhileEnumerable<>(this, predicate));
     }
 
     public Enumerable<TSource> skip(int skipNum){
-        return new SkipEnumerable<>(this, skipNum);
+        return builder(() -> new SkipEnumerable<>(this, skipNum));
     }
 
     public Enumerable<TSource> iter(Consumer<TSource> action){
-        return new IterEnumerable<>(this, idxPair -> action.accept(idxPair.value));
+        return builder(() -> new IterEnumerable<>(this, idxPair -> action.accept(idxPair.value)));
     }
 
     public Enumerable<TSource> iteri(BiConsumer<Integer, TSource> action){
-        return new IterEnumerable<>(this, idxPair -> action.accept(idxPair.index, idxPair.value));
+        return builder(() -> new IterEnumerable<>(this, idxPair -> action.accept(idxPair.index, idxPair.value)));
     }
 
     public <TProjection> Enumerable<TSource> orderBy(Function<TSource, TProjection> projection){
-        return new OrderByEnumerable(this, projection);
+        return builder(() -> new OrderByEnumerable(this, projection));
+    }
+
+    public <TSecond, TProjection> Enumerable<TProjection> zip(Iterable<TSecond> zipWith, BiFunction<TSource, TSecond, TProjection> zipper){
+        return builder(() -> new ZipEnumerable<>(this, zipWith, zipper));
     }
 
     public List<TSource> toList(){
@@ -72,24 +79,9 @@ public class Enumerable<TSource> implements Iterator<TSource>, Iterable<TSource>
      * Iterator methods
      */
 
-    protected void reset(){
-        source = generator.get();
-    }
-
     @Override
     public Iterator<TSource> iterator() {
-        reset();
-
-        return this;
-    }
-
-    @Override
-    public boolean hasNext() {
-        return source.hasNext();
-    }
-
-    @Override
-    public TSource next() {
-        return (TSource)source.next();
+        return iteratorGenerator.get();
     }
 }
+
