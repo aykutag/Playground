@@ -16,7 +16,7 @@ public class IndexIterator<TSource> extends EnumerableIterator<TSource> {
 
     @Override
     public TSource next(){
-        TSource n = (TSource)source.next();
+        TSource n = source.next();
         action.accept(new IndexValuePair<>(n, idx));
         idx++;
         return n;

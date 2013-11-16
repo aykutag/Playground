@@ -3,6 +3,7 @@ package com.devshorts.enumerable;
 import com.devshorts.enumerable.iterators.*;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.*;
@@ -62,8 +63,27 @@ public class Enumerable<TSource> implements Iterable<TSource> {
         return enumerableWithIterator(() -> new IndexIterator<>(this, idxPair -> action.accept(idxPair.index, idxPair.value)));
     }
 
-    public <TProjection> Enumerable<TSource> orderBy(Function<TSource, TProjection> projection){
-        return enumerableWithIterator(() -> new OrderByIterator(this, projection));
+    public <TProjection> Enumerable<TSource> orderBy(Function<TSource, Comparable<TProjection>> projection){
+        return orderBy(projection,  new Comparator<Comparable<TProjection>>() {
+            @Override
+            public int compare(Comparable<TProjection> o1, Comparable<TProjection> o2) {
+                return o1.compareTo((TProjection) o2);
+            }
+        });
+    }
+
+    public <TProjection> Enumerable<TSource> orderByDesc(Function<TSource, Comparable<TProjection>> projection){
+        return orderBy(projection,  new Comparator<Comparable<TProjection>>() {
+            @Override
+            public int compare(Comparable<TProjection> o1, Comparable<TProjection> o2) {
+                return o2.compareTo((TProjection) o1);
+            }
+        });
+    }
+
+    public <TProjection> Enumerable<TSource> orderBy(Function<TSource, Comparable<TProjection>> projection,
+                                                     Comparator<Comparable<TProjection>> comparator){
+        return enumerableWithIterator(() ->new OrderByIterator(this, projection, comparator));
     }
 
     public <TSecond, TProjection> Enumerable<TProjection> zip(Iterable<TSecond> zipWith, BiFunction<TSource, TSecond, TProjection> zipper){

@@ -1,35 +1,29 @@
 package com.devshorts.enumerable.iterators;
 
 import com.devshorts.enumerable.Enumerable;
+import com.devshorts.enumerable.data.ProjectionPair;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
 
-public class OrderByIterator<TSource> extends EnumerableIterator<TSource> {
-    private class ProjectionPair<T extends Comparable, Y> implements Comparable<T>{
-        public T projection;
-        public Y value;
-        public ProjectionPair(T projection, Y value){
-            this.projection = projection;
-            this.value = value;
-        }
+public class OrderByIterator<TSource, TProjection> extends EnumerableIterator<TSource> {
 
-        @Override
-        public int compareTo(T o) {
-            return o.compareTo(projection);
-        }
-    }
 
     private List<ProjectionPair> buffer;
-    private Function<TSource, ? extends Comparable> projection;
+    private Function<TSource, Comparable<TProjection>> projection;
+    private Comparator<TProjection> comparator;
     private Integer idx = 0;
 
-    public OrderByIterator(Iterable<TSource> source, Function<TSource, ? extends Comparable> projection) {
+    public OrderByIterator(Iterable<TSource> source,
+                           Function<TSource, Comparable<TProjection>> projection,
+                           Comparator<TProjection> comparator) {
         super(source);
 
         this.projection = projection;
+        this.comparator = comparator;
 
         sort();
     }
@@ -50,7 +44,12 @@ public class OrderByIterator<TSource> extends EnumerableIterator<TSource> {
         idx = 0;
 
         buffer = Enumerable.init(evaluateEnumerable())
-                .map(value -> new ProjectionPair(projection.apply(value), value))
+                .map(value -> new ProjectionPair(projection.apply(value), value, new Comparator<ProjectionPair<TProjection, ?>>() {
+                    @Override
+                    public int compare(ProjectionPair<TProjection, ?> o1, ProjectionPair<TProjection, ?> o2) {
+                        return comparator.compare(o1.projection, o2.projection);
+                    }
+                }))
                 .toList();
 
         Collections.sort(buffer);
