@@ -3,11 +3,24 @@ package com.devshorts.enumerable;
 import com.devshorts.enumerable.data.Yieldable;
 import com.devshorts.enumerable.iterators.*;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.function.*;
+
+class YieldedEnumeration<TSource> implements Iterable<TSource>  {
+
+    private Supplier<Yieldable<TSource>> generator;
+
+    public YieldedEnumeration(Supplier<Yieldable<TSource>> generator) {
+        super();
+
+        this.generator = generator;
+    }
+
+    @Override
+    public Iterator<TSource> iterator() {
+        return new YieldedEnumerationIterator<>(generator);
+    }
+}
 
 public class Enumerable<TSource> implements Iterable<TSource> {
 
@@ -111,7 +124,7 @@ public class Enumerable<TSource> implements Iterable<TSource> {
     }
 
     public List<TSource> toList(){
-        List<TSource> r = new ArrayList<>();
+        List<TSource> r = new LinkedList<>();
 
         for(TSource item : this){
             r.add(item);
