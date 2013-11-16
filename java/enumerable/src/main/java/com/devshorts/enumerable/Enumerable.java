@@ -77,11 +77,13 @@ public class Enumerable<TSource> implements Iterable<TSource> {
     }
 
     public Enumerable<TSource> iter(Consumer<TSource> action){
-        return enumerableWithIterator(() -> new IndexIterator<>(this, idxPair -> action.accept(idxPair.value)));
+        return enumerableWithIterator(() ->
+                new IndexIterator<>(this, idxPair -> action.accept(idxPair.value)));
     }
 
     public Enumerable<TSource> iteri(BiConsumer<Integer, TSource> action){
-        return enumerableWithIterator(() -> new IndexIterator<>(this, idxPair -> action.accept(idxPair.index, idxPair.value)));
+        return enumerableWithIterator(() ->
+                new IndexIterator<>(this, idxPair -> action.accept(idxPair.index, idxPair.value)));
     }
 
     public <TProjection> Enumerable<TSource> orderBy(Function<TSource, Comparable<TProjection>> projection){
@@ -97,20 +99,33 @@ public class Enumerable<TSource> implements Iterable<TSource> {
         return enumerableWithIterator(() ->new OrderByIterator(this, projection, comparator));
     }
 
-    public <TSecond, TProjection> Enumerable<TProjection> zip(Iterable<TSecond> zipWith, BiFunction<TSource, TSecond, TProjection> zipper){
+    public <TSecond, TProjection> Enumerable<TProjection> zip(Iterable<TSecond> zipWith,
+                                                              BiFunction<TSource, TSecond, TProjection> zipper){
         return enumerableWithIterator(() -> new ZipIterator<>(this, zipWith, zipper));
     }
 
-    public Enumerable<TSource> first(){
-        return enumerableWithIterator(() -> new NthIterator<>(this, 1));
+    public TSource first(){
+        return unsafeIterEval(new NthIterator<>(this, 1));
     }
 
-    public Enumerable<TSource> nth(int n){
-        return enumerableWithIterator(() -> new NthIterator<>(this, n));
+    public TSource firstOrDefault(){
+        return orDefault(new NthIterator<>(this, 1));
     }
 
-    public Enumerable<TSource> last(){
-        return enumerableWithIterator(() -> new LastIterator<>(this));
+    public TSource nth(int n){
+        return unsafeIterEval(new NthIterator<>(this, n));
+    }
+
+    public TSource nthOrDefault(int n){
+        return orDefault(new NthIterator<>(this, n));
+    }
+
+    public TSource last(){
+        return unsafeIterEval(new LastIterator<>(this));
+    }
+
+    public TSource lastorDefault(){
+        return orDefault(new LastIterator<>(this));
     }
 
     public List<TSource> toList(){
@@ -130,6 +145,21 @@ public class Enumerable<TSource> implements Iterable<TSource> {
     @Override
     public Iterator<TSource> iterator() {
         return iteratorGenerator.get();
+    }
+
+
+    private TSource unsafeIterEval(Iterator<TSource> iterator) {
+        iterator.hasNext();
+
+        return iterator.next();
+    }
+
+    private TSource orDefault(Iterator<TSource> iterator){
+        if(iterator.hasNext()){
+            return iterator.next();
+        }
+
+        return null;
     }
 }
 
