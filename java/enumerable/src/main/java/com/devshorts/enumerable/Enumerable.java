@@ -1,5 +1,6 @@
 package com.devshorts.enumerable;
 
+import com.devshorts.enumerable.data.Yieldable;
 import com.devshorts.enumerable.iterators.*;
 
 import java.util.ArrayList;
@@ -18,12 +19,19 @@ public class Enumerable<TSource> implements Iterable<TSource> {
         return new Enumerable<TSource>(source, () -> new EnumerableIterator<>(source));
     }
 
+    public static <TSource> Enumerable<TSource> generate(Supplier<Yieldable<TSource>> generator){
+        YieldedEnumeration<TSource> source = new YieldedEnumeration<>(generator);
+
+        return new Enumerable<TSource>(source, () -> new EnumerableIterator<>(source));
+    }
+
     private <T> Enumerable<T> enumerableWithIterator(Supplier<Iterator<T>> generator){
         return new Enumerable<>(this, generator);
     }
 
     protected Enumerable(Iterable source, Supplier<Iterator<TSource>> iteratorGenerator) {
         this.source = source;
+
         this.iteratorGenerator = iteratorGenerator;
     }
 
@@ -88,6 +96,18 @@ public class Enumerable<TSource> implements Iterable<TSource> {
 
     public <TSecond, TProjection> Enumerable<TProjection> zip(Iterable<TSecond> zipWith, BiFunction<TSource, TSecond, TProjection> zipper){
         return enumerableWithIterator(() -> new ZipIterator<>(this, zipWith, zipper));
+    }
+
+    public Enumerable<TSource> first(){
+        return enumerableWithIterator(() -> new NthIterator<>(this, 1));
+    }
+
+    public Enumerable<TSource> nth(int n){
+        return enumerableWithIterator(() -> new NthIterator<>(this, n));
+    }
+
+    public Enumerable<TSource> last(){
+        return enumerableWithIterator(() -> new LastIterator<>(this));
     }
 
     public List<TSource> toList(){
