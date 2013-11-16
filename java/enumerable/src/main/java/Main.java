@@ -40,11 +40,6 @@ public class Main{
             }
         });
 
-        String s = sGen
-               //.zip(strings, (a, b) -> new Tuple<>(a, b))
-               //.map(i -> i.item2.length())
-               //.zip(strings, (x, y) -> new Tuple<>(x, y))
-               .iter(System.out::println)
-               .first();
+        System.out.println(sGen.fold((acc, elem) -> acc + elem + "foo", ""));
     }
 }

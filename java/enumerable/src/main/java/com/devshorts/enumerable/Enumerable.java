@@ -124,8 +124,12 @@ public class Enumerable<TSource> implements Iterable<TSource> {
         return unsafeIterEval(new LastIterator<>(this));
     }
 
-    public TSource lastorDefault(){
+    public TSource lastOrDefault(){
         return orDefault(new LastIterator<>(this));
+    }
+
+    public <TAcc> TAcc fold(BiFunction<TAcc, TSource, TAcc> accumulator, TAcc seed){
+        return evalUnsafeMapIterator(new FoldIterator<>(this, accumulator, seed));
     }
 
     public List<TSource> toList(){
@@ -147,6 +151,12 @@ public class Enumerable<TSource> implements Iterable<TSource> {
         return iteratorGenerator.get();
     }
 
+
+    private <TAcc> TAcc evalUnsafeMapIterator(Iterator<TAcc> iterator) {
+        iterator.hasNext();
+
+        return iterator.next();
+    }
 
     private TSource unsafeIterEval(Iterator<TSource> iterator) {
         iterator.hasNext();
