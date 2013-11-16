@@ -85,21 +85,11 @@ public class Enumerable<TSource> implements Iterable<TSource> {
     }
 
     public <TProjection> Enumerable<TSource> orderBy(Function<TSource, Comparable<TProjection>> projection){
-        return orderBy(projection,  new Comparator<Comparable<TProjection>>() {
-            @Override
-            public int compare(Comparable<TProjection> o1, Comparable<TProjection> o2) {
-                return o1.compareTo((TProjection) o2);
-            }
-        });
+        return orderBy(projection, (o1, o2) -> o1.compareTo((TProjection) o2));
     }
 
     public <TProjection> Enumerable<TSource> orderByDesc(Function<TSource, Comparable<TProjection>> projection){
-        return orderBy(projection,  new Comparator<Comparable<TProjection>>() {
-            @Override
-            public int compare(Comparable<TProjection> o1, Comparable<TProjection> o2) {
-                return o2.compareTo((TProjection) o1);
-            }
-        });
+        return orderBy(projection, (o1, o2) -> o2.compareTo((TProjection) o1));
     }
 
     public <TProjection> Enumerable<TSource> orderBy(Function<TSource, Comparable<TProjection>> projection,
