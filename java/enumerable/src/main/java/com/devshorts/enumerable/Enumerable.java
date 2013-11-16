@@ -1,5 +1,6 @@
 package com.devshorts.enumerable;
 
+import com.devshorts.enumerable.data.Action;
 import com.devshorts.enumerable.data.Yieldable;
 import com.devshorts.enumerable.iterators.*;
 
@@ -24,27 +25,32 @@ class YieldedEnumeration<TSource> implements Iterable<TSource>  {
 
 public class Enumerable<TSource> implements Iterable<TSource> {
 
-    private Iterable source;
+    //private Iterable source;
 
     private Supplier<Iterator<TSource>> iteratorGenerator;
 
     public static <TSource> Enumerable<TSource> init(Iterable<TSource> source){
-        return new Enumerable<TSource>(source, () -> new EnumerableIterator<>(source));
+        return new Enumerable<>(() -> new EnumerableIterator<>(source));
     }
 
     public static <TSource> Enumerable<TSource> generate(Supplier<Yieldable<TSource>> generator){
-        YieldedEnumeration<TSource> source = new YieldedEnumeration<>(generator);
+        return new Enumerable<>(() -> new EnumerableIterator<>(new YieldedEnumeration<>(generator)));
+    }
 
-        return new Enumerable<TSource>(source, () -> new EnumerableIterator<>(source));
+    public static <TSource> Enumerable<TSource> generate(Supplier<Yieldable<TSource>> generator,
+                                                         Action onNewIterator){
+        return new Enumerable<>(() -> {
+            onNewIterator.exec();
+
+            return new EnumerableIterator<>(new YieldedEnumeration<>(generator));
+        });
     }
 
     private <T> Enumerable<T> enumerableWithIterator(Supplier<Iterator<T>> generator){
-        return new Enumerable<>(this, generator);
+        return new Enumerable<>(generator);
     }
 
-    protected Enumerable(Iterable source, Supplier<Iterator<TSource>> iteratorGenerator) {
-        this.source = source;
-
+    protected Enumerable(Supplier<Iterator<TSource>> iteratorGenerator) {
         this.iteratorGenerator = iteratorGenerator;
     }
 
@@ -130,6 +136,38 @@ public class Enumerable<TSource> implements Iterable<TSource> {
 
     public <TAcc> TAcc fold(BiFunction<TAcc, TSource, TAcc> accumulator, TAcc seed){
         return evalUnsafeMapIterator(new FoldIterator<>(this, accumulator, seed));
+    }
+
+
+    /**
+     * Folds using the first element as the seed
+     * @param accumulator
+     * @return
+     */
+    public TSource foldWithFirst(BiFunction<TSource, TSource, TSource> accumulator){
+        return unsafeIterEval(new FoldWithDefaultSeedIterator<>(this, accumulator));
+    }
+
+    public Boolean any(Predicate<TSource> predicate){
+        return evalUnsafeMapIterator(new PredicateIterator<>(
+                this,
+                predicate,
+                (acc, elem) -> acc || elem,
+                i -> i,
+                () -> true,
+                false
+        ));
+    }
+
+    public Boolean all(Predicate<TSource> predicate){
+        return evalUnsafeMapIterator(new PredicateIterator<>(
+                this,
+                predicate,
+                (acc, elem) -> acc && elem,
+                i -> !i,
+                () -> false,
+                true
+        ));
     }
 
     public List<TSource> toList(){

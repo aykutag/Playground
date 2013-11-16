@@ -1,11 +1,8 @@
 import com.devshorts.enumerable.Enumerable;
-import com.devshorts.enumerable.data.Tuple;
 import com.devshorts.enumerable.data.Yieldable;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Supplier;
 
 import static java.util.Arrays.asList;
 
@@ -27,19 +24,22 @@ public class Main{
 
         Box<Integer> b = new Box(0);
 
-        Enumerable<String> sGen = Enumerable.generate(() -> {
+        Enumerable<Integer> sGen = Enumerable.generate(() -> {
 
             if(b.elem < 10){
                 b.elem++;
-                System.out.println("yielding");
-                return Yieldable.yield(b.elem.toString());
+                System.out.println("yielding" + b.elem);
+                return Yieldable.yield(b.elem);
             }
             else{
                 System.out.println("breaking");
+
                 return Yieldable.yieldBreak();
             }
-        });
+        }, () -> b.elem = 0);
 
-        System.out.println(sGen.fold((acc, elem) -> acc + elem + "foo", ""));
+        System.out.println(sGen.any(i -> i == 5));
+        System.out.println("==");
+        System.out.println(sGen.all(i -> i <= 10));
     }
 }
