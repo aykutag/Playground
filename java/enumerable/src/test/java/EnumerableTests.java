@@ -91,5 +91,24 @@ public class EnumerableTests {
                         .toList());
     }
 
+    @Test
+    public void Nth(){
+        assertEquals("3",
+                Enumerable.init(asList("5", "4", "3", "2", "1"))
+                          .nth(3));
+    }
 
+    @Test
+    public void First(){
+        assertEquals("5",
+                Enumerable.init(asList("5", "4", "3", "2", "1"))
+                          .first());
+    }
+
+    @Test
+    public void Last(){
+        assertEquals("1",
+                Enumerable.init(asList("5", "4", "3", "2", "1"))
+                        .last());
+    }
 }
