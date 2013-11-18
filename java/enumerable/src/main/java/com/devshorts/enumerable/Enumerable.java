@@ -27,69 +27,71 @@ public class Enumerable<TSource> implements Iterable<TSource> {
 
     //private Iterable source;
 
-    private Supplier<Iterator<TSource>> iteratorGenerator;
+    private Function<Iterable<TSource>, Iterator<TSource>> iteratorGenerator;
 
     public static <TSource> Enumerable<TSource> init(Iterable<TSource> source){
-        return new Enumerable<>(() -> new EnumerableIterator<>(source));
+        return new Enumerable<>(ignore -> new EnumerableIterator<>(source));
     }
 
     public static <TSource> Enumerable<TSource> generate(Supplier<Yieldable<TSource>> generator){
-        return new Enumerable<>(() -> new EnumerableIterator<>(new YieldedEnumeration<>(generator)));
+        return new Enumerable<>(ignore -> new EnumerableIterator<>(new YieldedEnumeration<>(generator)));
     }
 
     public static <TSource> Enumerable<TSource> generate(Supplier<Yieldable<TSource>> generator,
                                                          Action onNewIterator){
-        return new Enumerable<>(() -> {
+        return new Enumerable<>(x -> {
             onNewIterator.exec();
 
             return new EnumerableIterator<>(new YieldedEnumeration<>(generator));
         });
     }
 
-    private <T> Enumerable<T> enumerableWithIterator(Supplier<Iterator<T>> generator){
-        return new Enumerable<>(generator);
+    private <TResult> Enumerable<TResult> enumerableWithIterator(Function<Iterable<TSource>, Iterator<TResult>> generator){
+        return new Enumerable<>(ignore -> generator.apply(this));
     }
 
-    protected Enumerable(Supplier<Iterator<TSource>> iteratorGenerator) {
+    protected Enumerable(Function<Iterable<TSource>, Iterator<TSource>> iteratorGenerator) {
         this.iteratorGenerator = iteratorGenerator;
     }
 
     public <TResult> Enumerable<TResult> map(Function<TSource, TResult> mapFunc){
-        return enumerableWithIterator(() -> new MapIterator<>(this, i -> mapFunc.apply(i)));
+        return enumerableWithIterator(source ->
+                new MapIterator<TSource, TResult>(source, i -> mapFunc.apply(i)));
     }
 
     public <TResult> Enumerable<TResult> flatMap(Function<TSource, List<TResult>> mapFunc){
-        return enumerableWithIterator(() -> new FlatMapIterator<>(this, i -> mapFunc.apply(i)));
+        return enumerableWithIterator(source ->
+                new FlatMapIterator<TSource, TResult>(source, i -> mapFunc.apply(i)));
     }
 
     public Enumerable<TSource> filter(Predicate<TSource> filterFunc){
-        return enumerableWithIterator(() -> new FilterIterator<>(this, filterFunc));
+        return enumerableWithIterator(source -> new FilterIterator<>(source, filterFunc));
     }
 
     public Enumerable<TSource> take(int n){
-        return enumerableWithIterator(() -> new TakeIterator<>(this, n));
+        return enumerableWithIterator(source -> new TakeIterator<>(source, n));
     }
 
     public Enumerable<TSource> takeWhile(Predicate<TSource> predicate){
-        return enumerableWithIterator(() -> new TakeWhileIterator<>(this, predicate));
+        return enumerableWithIterator(source -> new TakeWhileIterator<>(source, predicate));
     }
 
     public Enumerable<TSource> skip(int skipNum){
-        return enumerableWithIterator(() -> new SkipIterator<>(this, skipNum));
+        return enumerableWithIterator(source -> new SkipIterator<>(source, skipNum));
     }
 
     public Enumerable<TSource> skipWhile(Predicate<TSource> predicate){
-        return enumerableWithIterator(() -> new SkipWhileIterator<>(this, predicate));
+        return enumerableWithIterator(source -> new SkipWhileIterator<>(source, predicate));
     }
 
     public Enumerable<TSource> iter(Consumer<TSource> action){
-        return enumerableWithIterator(() ->
-                new IndexIterator<>(this, idxPair -> action.accept(idxPair.value)));
+        return enumerableWithIterator(source ->
+                new IndexIterator<>(source, idxPair -> action.accept(idxPair.value)));
     }
 
     public Enumerable<TSource> iteri(BiConsumer<Integer, TSource> action){
-        return enumerableWithIterator(() ->
-                new IndexIterator<>(this, idxPair -> action.accept(idxPair.index, idxPair.value)));
+        return enumerableWithIterator(source ->
+                new IndexIterator<>(source, idxPair -> action.accept(idxPair.index, idxPair.value)));
     }
 
     public <TProjection> Enumerable<TSource> orderBy(Function<TSource, Comparable<TProjection>> projection){
@@ -102,12 +104,12 @@ public class Enumerable<TSource> implements Iterable<TSource> {
 
     public <TProjection> Enumerable<TSource> orderBy(Function<TSource, Comparable<TProjection>> projection,
                                                      Comparator<Comparable<TProjection>> comparator){
-        return enumerableWithIterator(() ->new OrderByIterator(this, projection, comparator));
+        return enumerableWithIterator(source -> new OrderByIterator(source, projection, comparator));
     }
 
     public <TSecond, TProjection> Enumerable<TProjection> zip(Iterable<TSecond> zipWith,
                                                               BiFunction<TSource, TSecond, TProjection> zipper){
-        return enumerableWithIterator(() -> new ZipIterator<>(this, zipWith, zipper));
+        return enumerableWithIterator(source -> new ZipIterator<>(source, zipWith, zipper));
     }
 
     public TSource first(){
@@ -170,6 +172,10 @@ public class Enumerable<TSource> implements Iterable<TSource> {
         ));
     }
 
+    public Enumerable<TSource> distinct(){
+        return enumerableWithIterator(DistinctIterator::new);
+    }
+
     public List<TSource> toList(){
         List<TSource> r = new LinkedList<>();
 
@@ -186,7 +192,7 @@ public class Enumerable<TSource> implements Iterable<TSource> {
 
     @Override
     public Iterator<TSource> iterator() {
-        return iteratorGenerator.get();
+        return iteratorGenerator.apply(this);
     }
 
 

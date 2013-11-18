@@ -29,7 +29,7 @@ public class Main{
             if(b.elem < 10){
                 b.elem++;
                 System.out.println("yielding" + b.elem);
-                return Yieldable.yield(b.elem);
+                return Yieldable.yield(b.elem % 100);
             }
             else{
                 System.out.println("breaking");
@@ -38,8 +38,6 @@ public class Main{
             }
         }, () -> b.elem = 0);
 
-        System.out.println(sGen.any(i -> i == 5));
-        System.out.println("==");
         System.out.println(sGen.all(i -> i <= 10));
     }
 }
