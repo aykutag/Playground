@@ -6,6 +6,8 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
 
 public class EnumerableTests {
     @Test
@@ -110,5 +112,33 @@ public class EnumerableTests {
         assertEquals("1",
                 Enumerable.init(asList("5", "4", "3", "2", "1"))
                         .last());
+    }
+
+    @Test
+    public void Filter(){
+        assertEquals(asList(4, 3, 2),
+                Enumerable.init(asList(5, 4, 3, 2, 1))
+                           .filter(i -> i > 1 && i < 5)
+                            .toList());
+    }
+
+    @Test
+    public void Any(){
+        assertTrue(Enumerable.init(asList(5, 4, 3, 2, 1)).any(i -> i > 1 && i < 5));
+    }
+
+    @Test
+    public void AnyFalse(){
+        assertFalse(Enumerable.init(asList(5, 4, 3, 2, 1)).any(i -> i > 10));
+    }
+
+    @Test
+    public void All(){
+        assertTrue(Enumerable.init(asList(5, 4, 3, 2, 1)).all(i -> i < 10));
+    }
+
+    @Test
+    public void AllFalse(){
+        assertFalse(Enumerable.init(asList(5, 4, 3, 2, 1)).all(i -> i > 10));
     }
 }
