@@ -173,7 +173,13 @@ public class Enumerable<TSource> implements Iterable<TSource> {
     }
 
     public Enumerable<TSource> distinct(){
-        return enumerableWithIterator(DistinctIterator::new);
+        return enumerableWithIterator(source ->
+                new DistinctIterator<TSource, TSource>(source, i -> i));
+    }
+
+    public <TProjection> Enumerable<TSource> distinctBy(Function<TSource, TProjection> projection){
+        return enumerableWithIterator(source ->
+                new DistinctIterator<>(source, projection));
     }
 
     public List<TSource> toList(){

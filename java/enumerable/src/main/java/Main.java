@@ -26,10 +26,10 @@ public class Main{
 
         Enumerable<Integer> sGen = Enumerable.generate(() -> {
 
-            if(b.elem < 10){
+            if(b.elem < 1000){
                 b.elem++;
                 System.out.println("yielding" + b.elem);
-                return Yieldable.yield(b.elem % 100);
+                return Yieldable.yield((b.elem % 10));
             }
             else{
                 System.out.println("breaking");
@@ -38,6 +38,6 @@ public class Main{
             }
         }, () -> b.elem = 0);
 
-        System.out.println(sGen.all(i -> i <= 10));
+        System.out.println(sGen.distinct().iter(System.out::println).toList());
     }
 }
