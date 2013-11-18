@@ -25,4 +25,71 @@ public class EnumerableTests {
 
         assertEquals(expectZipped, ids.zip(ids, (f, s) -> f.toString() + s.toString()).toList());
     }
+
+    @Test
+    public void Order(){
+        assertEquals(asList(1, 2, 3, 4, 5),
+                     Enumerable.init(asList(5, 4, 3, 2, 1))
+                                .orderBy(i -> i)
+                                .toList());
+    }
+
+    @Test
+    public void OrderDesc(){
+        assertEquals(asList(5, 4, 3, 2, 1),
+                Enumerable.init(asList(1, 2, 3, 4, 5))
+                        .orderByDesc(i -> i)
+                        .toList());
+    }
+
+    @Test
+    public void Map(){
+        assertEquals(asList("5", "4", "3", "2", "1"),
+                Enumerable.init(asList(5, 4, 3, 2, 1))
+                        .map(i -> i.toString())
+                        .toList());
+    }
+
+    @Test
+    public void FlatMap(){
+        assertEquals(asList("5", "4", "3", "2", "1"),
+                Enumerable.init(asList(asList("5"), asList("4"), asList("3"), asList("2"), asList("1")))
+                        .flatMap(i -> i)
+                        .map(i -> i.toString())
+                        .toList());
+    }
+
+    @Test
+    public void Skip(){
+        assertEquals(asList("4", "3", "2", "1"),
+                Enumerable.init(asList("5", "4", "3", "2", "1"))
+                        .skip(1)
+                        .toList());
+    }
+
+    @Test
+    public void SkipWhile(){
+        assertEquals(asList("4", "3", "2", "1"),
+                Enumerable.init(asList("5", "4", "3", "2", "1"))
+                        .skipWhile(i -> i.equals("5"))
+                        .toList());
+    }
+
+    @Test
+    public void Take(){
+        assertEquals(asList("5"),
+                Enumerable.init(asList("5", "4", "3", "2", "1"))
+                        .take(1)
+                        .toList());
+    }
+
+    @Test
+    public void TakeWhile(){
+        assertEquals(asList("5"),
+                Enumerable.init(asList("5", "4", "3", "2", "1"))
+                        .takeWhile(i -> i.equals("5"))
+                        .toList());
+    }
+
+
 }
