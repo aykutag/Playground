@@ -141,4 +141,18 @@ public class EnumerableTests {
     public void AllFalse(){
         assertFalse(Enumerable.init(asList(5, 4, 3, 2, 1)).all(i -> i > 10));
     }
+
+    @Test
+    public void Fold(){
+        assertEquals((Integer) (5 + 4 + 3+ 2 + 1 + 10),
+                Enumerable.init(asList(5, 4, 3, 2, 1))
+                        .fold((acc, elem) -> acc + elem, 10));
+    }
+
+    @Test
+    public void FoldWithSeed(){
+        assertEquals((Integer) (5 + 4 + 3+ 2 + 1),
+                Enumerable.init(asList(5, 4, 3, 2, 1))
+                        .foldWithFirst((acc, elem) -> acc + elem));
+    }
 }
