@@ -5,7 +5,6 @@ import org.junit.Test;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static junit.framework.Assert.*;
@@ -199,5 +198,27 @@ public class EnumerableTests {
         });
 
         assertEquals(ints.toList(), asList(1,2,3,4,5,6,7,8,9));
+    }
+
+    @Test
+    public void DistinctUnion(){
+        assertEquals(asList(1,2,3,4,5,6,7,8,9),
+                Enumerable.init(asList(5, 4, 3, 2, 1))
+                          .distinctUnion(asList(5, 4, 3, 5, 5, 5, 5, 6, 7, 8, 9)).toList());
+    }
+
+    @Test
+    public void Intersect(){
+        assertEquals(asList(9, 2, 1),
+                Enumerable.init(asList(5, 4, 3, 9, 2, 1))
+                        .intersect(asList(1,1,1,2, 6, 7, 8, 9)).toList());
+    }
+
+    @Test
+    public void Except(){
+        assertEquals(asList(3, 4, 5),
+                Enumerable.init(asList(5, 4, 3, 9, 2, 1))
+                        .orderBy(i -> i)
+                        .except(asList(1,1,1,2, 6, 7, 8, 9)).toList());
     }
 }

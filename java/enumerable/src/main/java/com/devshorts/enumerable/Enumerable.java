@@ -94,6 +94,18 @@ public class Enumerable<TSource> implements Iterable<TSource> {
                 new IndexIterator<>(source, idxPair -> action.accept(idxPair.index, idxPair.value)));
     }
 
+    public Enumerable<TSource> distinctUnion(Iterable<TSource> intersectWith){
+        return enumerableWithIterator(source -> new DistinctUnion<>(source, intersectWith));
+    }
+
+    public Enumerable<TSource> intersect(Iterable<TSource> intersectWith){
+        return enumerableWithIterator(source -> new IntersectIterator<>(source, intersectWith));
+    }
+
+    public Enumerable<TSource> except(Iterable<TSource> except){
+        return enumerableWithIterator(source -> new ExceptIterator<>(source, except));
+    }
+
     public <TProjection> Enumerable<TSource> orderBy(Function<TSource, Comparable<TProjection>> projection){
         return orderBy(projection, (o1, o2) -> o1.compareTo((TProjection) o2));
     }
