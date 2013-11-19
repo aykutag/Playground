@@ -1,13 +1,14 @@
 import com.devshorts.enumerable.Enumerable;
-import com.devshorts.enumerable.data.Tuple;
+import com.devshorts.enumerable.data.Action;
+import com.devshorts.enumerable.data.Yieldable;
 import org.junit.Test;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.*;
 
 public class EnumerableTests {
     @Test
@@ -25,7 +26,8 @@ public class EnumerableTests {
 
         List<String> expectZipped = asList("11", "22", "33", "44", "55");
 
-        assertEquals(expectZipped, ids.zip(ids, (f, s) -> f.toString() + s.toString()).toList());
+        assertEquals(expectZipped,
+                     ids.zip(ids, (f, s) -> f.toString() + s.toString()).toList());
     }
 
     @Test
@@ -154,5 +156,48 @@ public class EnumerableTests {
         assertEquals((Integer) (5 + 4 + 3+ 2 + 1),
                 Enumerable.init(asList(5, 4, 3, 2, 1))
                         .foldWithFirst((acc, elem) -> acc + elem));
+    }
+
+    @Test
+    public void BenchMark(){
+        for(int x = 1; x < 100000; x *= 10){
+            List<Integer> data = new LinkedList<Integer>();
+
+            for(int j = 0; j < x; j++){
+                data.add(j);
+            }
+
+            long streamTime = TimeAndRun(() -> data.stream()
+                                                   .reduce((acc, elem) -> acc + elem));
+
+            long enumTime = TimeAndRun(() -> Enumerable.init(data).foldWithFirst((acc, elem) -> acc + elem));
+
+            System.out.println("=== " + x + " ===");
+
+            System.out.println("Streams:  " + streamTime);
+            System.out.println("EnumTime: " + enumTime);
+        }
+    }
+
+    private long TimeAndRun(Action action){
+        long t = System.nanoTime();
+
+        action.exec();
+
+        return System.nanoTime() - t;
+    }
+
+    @Test
+    public void Yield(){
+        Box<Integer> i = new Box<>(0);
+        Enumerable<Integer> ints = Enumerable.generate(() -> {
+            i.elem++;
+            if(i.elem < 10){
+                return Yieldable.yield(i.elem);
+            }
+            return Yieldable.yieldBreak();
+        });
+
+        assertEquals(ints.toList(), asList(1,2,3,4,5,6,7,8,9));
     }
 }
