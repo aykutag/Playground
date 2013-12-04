@@ -74,16 +74,18 @@ procElem (Discount(All percent)) list offset =
     map (updateCart percent) list
 
 procElem (Discount(Next nth percent)) list offset =  
-    updateByPredicate list nth offset isProduct percent
+    updateByPredicate list (nth-1) offset isProduct percent
 
 procElem (Discount(Nth nth buyable percent)) list offset = 
-    updateByPredicate list nth offset (isBuyable buyable) percent
+    updateByPredicate list (nth-1) offset (isBuyable buyable) percent
 
 procElem _ list offset = list
 
 mapCart :: [Cart] -> [Cart]
 mapCart list = mappedCart list
     where 
-        iterateElements (count, cart) element = (count + 1, procElem element cart count)
+        iterateElements (count, cart) element = 
+            (count + 1, procElem element cart count) 
+
         mappedCart = snd . foldl(iterateElements) (0, list)
 
