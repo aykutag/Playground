@@ -12,11 +12,11 @@ defaultCart =  [Product Fruit $ Price 2.0,
             Product Meat $ Price 1.0,
             Product Meat $ Price 2.0]
 
-test_isBuyable = assertEqual True buy
-    where buy = isBuyable Meat (Product Meat $ Price 2.0)
+test_targetMatches = assertEqual True buy
+    where buy = targetMatches Meat (Product Meat $ Price 2.0)
 
 test_isBuyableFalse = assertEqual False buy
-    where buy = isBuyable Meat (Product Fruit $ Price 2.0)     
+    where buy = targetMatches Meat (Product Fruit $ Price 2.0)     
 
 test_updateCart = assertEqual expected updatedItem
     where         

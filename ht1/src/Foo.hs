@@ -36,9 +36,9 @@ isProduct :: Cart -> Bool
 isProduct (Product _ _) = True
 isProduct (Discount _)  = False 
 
-isBuyable :: Buyable -> Cart -> Bool
-isBuyable target (Product b _) = target == b
-isBuyable _ _ = False
+targetMatches :: Buyable -> Cart -> Bool
+targetMatches target (Product b _) = target == b
+targetMatches _ _ = False
 
 nextIndex :: Int -> (a -> Bool) -> [a] -> Maybe Int
 nextIndex start predicate list = index  
@@ -58,10 +58,9 @@ getNth start count predicate list
 updateByPredicate :: [Cart] -> Int -> Int -> (Cart -> Bool) -> Float -> [Cart]
 updateByPredicate list nth offset predicate percent = 
     case getNth offset nth predicate list of
-            Just idx -> let (oldList, curr:rest) = splitAt idx list            
-                            updated = updateCart percent curr                                       
-                            in oldList++[updated]++rest
-            Nothing -> list
+        Just idx -> let (notProcessed, targetItem:remaining) = splitAt idx list                                                            
+                    in notProcessed++[updateCart percent targetItem]++remaining
+        Nothing -> list
 
 procElem :: Cart -> [Cart] -> Int -> [Cart]
 procElem (Discount(All percent)) list offset = 
@@ -71,7 +70,7 @@ procElem (Discount(Next nth percent)) list offset =
     updateByPredicate list (nth-1) offset isProduct percent
 
 procElem (Discount(Nth nth buyable percent)) list offset = 
-    updateByPredicate list (nth-1) offset (isBuyable buyable) percent
+    updateByPredicate list (nth-1) offset (targetMatches buyable) percent
 
 procElem _ list offset = list
 
