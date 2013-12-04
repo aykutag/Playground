@@ -12,13 +12,7 @@ data Buyable = Meat | Fruit  deriving (Show, Eq)
 data Coupon = 
         All Float
     |   Next Int Float   
-    |   Nth Int Buyable Float deriving Eq
-
-instance Show Coupon where
-    show (All x) = "All coupons " ++ show x
-    show (Next n x) = show n ++ "th at " ++ show x ++ "%"
-    show (Nth n b x) = "Take $" ++ show x ++ " dollars off the " ++ 
-                        show n ++ "th " ++ show b
+    |   Nth Int Buyable Float deriving (Show, Eq)
 
 data Cart = 
         Discount Coupon 
