@@ -6,6 +6,12 @@ import Test.Framework
 
 import Foo
 
+defaultCart =  [Product Fruit $ Price 2.0, 
+            Discount $ All 0.5,
+            Discount $ Nth 1 Meat 0.5,
+            Product Meat $ Price 1.0,
+            Product Meat $ Price 2.0]
+
 test_isBuyable = assertEqual True buy
     where buy = isBuyable Meat (Product Meat $ Price 2.0)
 
@@ -49,3 +55,11 @@ test_mapAllItems2 = assertEqual target actual
                     Product Meat $ Price 0.5]
 
         actual = mapCart original
+
+test_getNth_at_element = assertEqual (Just 3) actual            
+    where 
+        actual = getNth 1 0 isProduct defaultCart
+
+test_getNth_one_element_later = assertEqual (Just 4) actual            
+    where 
+        actual = getNth 1 1 isProduct defaultCart
