@@ -17,3 +17,4 @@ obj/
 *.class
 maven-compiler-plugin/
 dist/
+/.project

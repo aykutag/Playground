@@ -31,14 +31,15 @@ updateCart percent (Product buyable price) = Product buyable newPrice
     where 
         newPrice = Price $ (getPrice price) * percent
 updateCart _ coupon = coupon
-
+ 
 isProduct :: Cart -> Bool
 isProduct (Product _ _) = True
 isProduct (Discount _)  = False 
-
+ 
 targetMatches :: Buyable -> Cart -> Bool
 targetMatches target (Product b _) = target == b
 targetMatches _ _ = False
+ 
 
 nextIndex :: Int -> (a -> Bool) -> [a] -> Maybe Int
 nextIndex start predicate list = index  
