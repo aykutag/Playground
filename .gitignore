@@ -5,6 +5,7 @@
 # *.[oa]
 # *~
 bin/
+*.socks*
 _Resharper*
 Debug/
 Release/
