@@ -19,4 +19,4 @@ obj/
 maven-compiler-plugin/
 dist/
 *.o
-
+.DS_Store
