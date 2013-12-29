@@ -60,3 +60,17 @@ allWords tries =
                                     []:(rawWords suffixes)
                                 else 
                                     rawWords suffixes]
+
+guess :: (Eq a) => Key a -> [Trie a] -> Maybe [Key a]
+guess word trie = 
+    findTrie word trie >>= \(Node _ next isWord) -> 
+    return $ (source isWord) ++ (prependOriginal word $ allWords next)
+    where 
+        source isWord = if isWord then [word] else []
+        prependOriginal word = map (\elem -> word ++ elem)
+    
+build :: (Eq t) => [Key t] -> [Trie t]
+build list = buildTrie list empty
+    where 
+        buildTrie [] trie = trie
+        buildTrie (x:xs) trie = buildTrie xs (insert x trie)
