@@ -1,0 +1,10 @@
+Test suite TestTemp: RUNNING...
+* Tests:    0
+* Passed:   0
+* Pending:  0
+* Failures: 0
+* Errors:   0
+
+Total execution time: 3ms
+Test suite TestTemp: PASS
+Test suite logged to: dist/test/Haskell-Trie-0.1.0.0-TestTemp.log
