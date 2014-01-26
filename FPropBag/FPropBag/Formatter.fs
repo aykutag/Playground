@@ -30,7 +30,7 @@ module Formatter =
                     else 
                         None            
 
-    and ContextType = 
+    and private ContextType = 
         | Value of string
         | List of string list
         | More of Context

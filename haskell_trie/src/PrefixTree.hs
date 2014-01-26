@@ -18,7 +18,7 @@ empty = []
 findKey :: (Eq t) => t -> [Trie t] -> Maybe (Trie t)
 findKey key tries = L.find (\(Node next _ _) -> next == Just key) tries
 
-{-
+{-  
     Takes a key list and finds the trie that fullfils that prefix
 -}
 findTrie :: (Eq t) => Key t -> [Trie t] -> Maybe (Trie t)

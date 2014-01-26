@@ -9,6 +9,7 @@ bin/
 _Resharper*
 Debug/
 Release/
+*.user
 obj/
 *.suo
 *.ReSharper.user
