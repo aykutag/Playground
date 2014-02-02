@@ -22,18 +22,18 @@ namespace Future
             Func<int> action = () =>
             {
                 Console.WriteLine("Running " + count);
-                Thread.Sleep(TimeSpan.FromMilliseconds(count * 100));
+                Thread.Sleep(TimeSpan.FromMilliseconds(count * 1000));
                 Console.WriteLine("Resolving " + count);
 
                 count++;
                 return count;
             };
 
-            var future = generator(action).Then(action).Then(action);
+            var future = new NewThreadFuture<int>(action).Then(action).Then(action);
 
             Console.WriteLine("All setup, nonblock but now wait");
 
-            Thread.Sleep(TimeSpan.FromSeconds(5));
+            Thread.Sleep(TimeSpan.FromSeconds(2));
 
             Console.WriteLine("Requesting result");
 
@@ -65,7 +65,7 @@ namespace Future
                 throw new Exception("Error");
             };
 
-            var future = new NewThreadPoolFuture<int>(action);
+            var future = new NewThreadFuture<int>(action);
 
             future.Resolve();
         }
