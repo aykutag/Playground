@@ -3,11 +3,11 @@ using System.Threading;
 
 namespace Future
 {
-    public class Future<T>
+    public abstract class Future<T>
     {
         private bool _isComplete;
 
-        private Thread _runner;
+        private ManualResetEvent _mutex = new ManualResetEvent(false);
 
         private Exception _ex;
 
@@ -20,10 +20,12 @@ namespace Future
             Execute(Wrapped(function));
         }
 
+        protected abstract void Execute(Action wrapped);
+
         private Action Wrapped(Func<T> function)
         {
             return () =>
-            {              
+            {
                 try
                 {
                     _result = function();
@@ -36,15 +38,12 @@ namespace Future
                 catch (Exception ex)
                 {
                     _ex = ex;
-                }                
+                }
+                finally
+                {
+                    _mutex.Set();
+                }
             };
-        }
-
-        private void Execute(Action wrapped)
-        {
-            _runner = new Thread(new ThreadStart(wrapped));
-    
-            _runner.Start();
         }
 
         public T Resolve()
@@ -57,8 +56,8 @@ namespace Future
                 }
             }
 
-            _runner.Join();
-                
+            _mutex.WaitOne();
+
             if (_ex != null)
             {
                 throw _ex;
@@ -67,24 +66,28 @@ namespace Future
             return _result;        
         }
 
-        public Future<T> Then(Func<T> next)
+        public abstract Future<T> Then(Func<T> next);
+
+        protected Func<T> ThenWithoutResult(Func<T> next)
         {
-            return new Future<T>(() =>
+            return () =>
             {
                 Resolve();
 
                 return next();
-            });
-        }  
+            };
+        }
 
-        public Future<Y> Then<Y>(Func<T, Y> next)
+        protected Func<Y> ThenWithResult<Y>(Func<T, Y> next)
         {
-            return new Future<Y>(() =>
+            return () =>
             {
                 var previousResult = Resolve();
 
                 return next(previousResult);
-            });
-        }  
+            };
+        }
+
+        public abstract Future<Y> Then<Y>(Func<T, Y> next);
     }
 }
