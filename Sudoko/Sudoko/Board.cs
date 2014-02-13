@@ -13,7 +13,7 @@ namespace Sudoko
     {
         private readonly int?[,] _board;
 
-        private readonly List<Location> _spaces = new List<Location>();
+        private readonly List<Location> _emptySpaces = new List<Location>();
 
         public static Board Load(List<char> representation, int n)
         {
@@ -52,15 +52,14 @@ namespace Sudoko
             {
                 if (_board[location.X, location.Y] == null)
                 {
-                    _spaces.Add(location);
+                    _emptySpaces.Add(location);
                 }
             });
 
             TotalSpaceValues = Enumerable.Range(1, N * N).ToList();
         }
 
-        public Board(int n)
-            : this(n, new int?[n * n, n * n])
+        public Board(int n) : this(n, new int?[n * n, n * n])
         {
 
         }
@@ -106,11 +105,11 @@ namespace Sudoko
         {
             _board[location.X, location.Y] = value;
 
-            for (int i = 0; i < _spaces.Count; i++)
+            for (int i = 0; i < _emptySpaces.Count; i++)
             {
-                if (_spaces[i].X == location.X && _spaces[i].Y == location.Y)
+                if (_emptySpaces[i].X == location.X && _emptySpaces[i].Y == location.Y)
                 {
-                    _spaces.RemoveAt(i);
+                    _emptySpaces.RemoveAt(i);
                     return;
                 }
             }
@@ -194,16 +193,16 @@ namespace Sudoko
 
         public Location NextEmpty()
         {
-            if (_spaces.Count == 0)
+            if (_emptySpaces.Count == 0)
             {
                 return null;
             }
 
             var possibles = new Dictionary<Location, List<int>>();
 
-            foreach (var space in _spaces)
+            foreach (var emptySpace in _emptySpaces)
             {
-                possibles[space] = TotalSpaceValues.Except(UsedNumbersInSpace(space)).ToList();
+                possibles[emptySpace] = TotalSpaceValues.Except(UsedNumbersInSpace(emptySpace)).ToList();
             }
 
             foreach (var possible in possibles)
