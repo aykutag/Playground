@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System.Diagnostics;
+using NUnit.Framework;
 using System.Linq;
 using System.Collections.Generic;
 
@@ -23,6 +24,7 @@ namespace Sudoko
             var size = 81;
 
             var boards = Boards.ToList();
+
             for (int i = 0; i < 94; i++)
             {
                 var source = boards.Skip(i*size)
@@ -31,11 +33,17 @@ namespace Sudoko
 
                 var b = Board.Load(source, 3);
 
+                var timer = new Stopwatch();
+
+                timer.Start();
+
                 var solved = Solver.SolveSingleThreaded(b);
+
+                timer.Stop();
 
                 if (solved != null && Util.Validate(solved))
                 {
-                    System.Console.WriteLine("Succeeded!");
+                    System.Console.WriteLine("Succeeded in {0} ms", timer.ElapsedMilliseconds);
                 }
                 else
                 {

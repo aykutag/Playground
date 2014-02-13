@@ -18,8 +18,8 @@ namespace Sudoko
 
             var available = b.TotalSpaceValues
                              .Except(taken)
-                             .ToList()
-                             .Shuffle();
+                             .ToList();
+                             //.Shuffle();
 
             if (available.Count == 0)
             {
