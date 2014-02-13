@@ -203,17 +203,24 @@ namespace Sudoko
             foreach (var emptySpace in _emptySpaces)
             {
                 possibles[emptySpace] = TotalSpaceValues.Except(UsedNumbersInSpace(emptySpace)).ToList();
-            }
 
-            foreach (var possible in possibles)
-            {
-                if (possible.Value.Count == 1)
+                if (possibles[emptySpace].Count == 1)
                 {
-                    Set(possible.Key, possible.Value.First());
+                    Set(emptySpace, possibles[emptySpace].First());
 
                     return NextEmpty();
                 }
             }
+//
+//            foreach (var possible in possibles)
+//            {
+//                if (possible.Value.Count == 1)
+//                {
+//                    Set(possible.Key, possible.Value.First());
+//
+//                    return NextEmpty();
+//                }
+//            }
 
             return possibles.MinBy(kvp => kvp.Value.Count()).Key;
         }

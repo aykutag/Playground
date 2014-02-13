@@ -33,7 +33,7 @@ namespace Sudoko
 
                 var solved = Solver.SolveSingleThreaded(b);
 
-                if (solved != null)
+                if (solved != null && Util.Validate(solved))
                 {
                     System.Console.WriteLine("Succeeded!");
                 }
