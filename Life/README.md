@@ -14,4 +14,4 @@ This implementation uses a sparse board (implemented as a dictionary) to only ke
 
 You still need to count all the neighbors, but ONLY of changed items!  As you count the items, if the neighbor didn't exist in the dictionary you can add it, and now it will join the processing pool.  If a node isn't changed, and none of its neighbors are changed, then there is no reason to run through it.
 
-For example, running the game 50 times on a board of 250,000 elements took just under 3 minutes for me. 
+For example, running the game 50 times on a board of 250,000 elements took just under 3 minutes for me. 50 times on a board of 1 million elements took 30 minutes.
