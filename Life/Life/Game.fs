@@ -20,7 +20,7 @@ type SparseBoard = {
     Board: CellContainer
 }
 
-let neighbors (x, y) max = 
+let neighbors max (x, y) = 
     seq {
         yield (x + 1, y)
         yield (x - 1, y)
@@ -63,7 +63,7 @@ let countNeighbors pos ( game : SparseBoard ) =
                     if not (game.Board.ContainsKey neighbor) then acc else
                     match game.Board.[neighbor] with  
                         | Alive count -> acc + 1
-                        | Dead count -> acc) 0 (neighbors pos game.Size )
+                        | Dead count -> acc) 0 (pos |> neighbors game.Size )
 
 
 
@@ -95,7 +95,7 @@ let init n =
 
     
     for (pos, changedCell) in changed do
-        for neighbor in neighbors pos n do
+        for neighbor in pos |> neighbors n do
             setAliveCount neighbor game
 
     game
@@ -141,7 +141,7 @@ let nextBoard (inputGame : SparseBoard) =
     printfn "%i changed" changed.Count
 
     for (changedPosition, changedCell) in changed do
-        for neighbor in neighbors changedPosition game.Size do
+        for neighbor in changedPosition |> neighbors game.Size do
             game |> setAliveCount neighbor 
 
         game |> setAliveCount changedPosition 
