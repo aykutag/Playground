@@ -25,7 +25,7 @@ module DataEmitter =
     type ILGenBuilder (gen: ILGenerator) = 
         member this.Bind(expr, func)= 
             expr gen
-            func () 
+            func () |> ignore
 
         member this.Return(v) = ()
         member this.Zero () = ()
