@@ -1,0 +1,5 @@
+C:\Projects\Playground\PowerShellCmdlets\Sample\bin\Debug\Sample.dll
+C:\Projects\Playground\PowerShellCmdlets\Sample\bin\Debug\Sample.pdb
+C:\Projects\Playground\PowerShellCmdlets\Sample\obj\Debug\Sample.csprojResolveAssemblyReference.cache
+C:\Projects\Playground\PowerShellCmdlets\Sample\obj\Debug\Sample.dll
+C:\Projects\Playground\PowerShellCmdlets\Sample\obj\Debug\Sample.pdb
