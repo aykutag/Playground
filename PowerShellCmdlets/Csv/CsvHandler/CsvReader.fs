@@ -11,15 +11,21 @@ module CsvReader =
 
     let randomName() = rand.Next (0, 999999) |> string
 
+    let defaultHeaders size = [0..size] |> List.map (fun i -> "Unknown Header " + (string i))
+
     let load (stream : Stream) = 
         let csv = CsvFile.Load(stream).Cache()
 
         let headers = match csv.Headers with 
                         | Some(h) -> h |> Array.toList
-                        | None -> [0..csv.NumberOfColumns] |> List.map (fun i -> "Unknown Header " + (string i))
+                        | None -> csv.NumberOfColumns |> defaultHeaders
 
-        let typeData = make (randomName()) (headers |> List.map (fun i -> (i, typeof<string>)))
+        let fields = headers |> List.map (fun fieldName -> (fieldName, typeof<string>))
 
-        [for item in csv.Data do       
-            let data = Activator.CreateInstance(typeData, item.Columns |> Array.map (fun i -> i :> obj))         
-            yield data]
+        let typeData = make (randomName()) fields
+
+        [
+            for item in csv.Data do       
+                let paramsArr = item.Columns |> Array.map (fun i -> i :> obj)
+                yield Activator.CreateInstance(typeData, paramsArr)         
+        ]

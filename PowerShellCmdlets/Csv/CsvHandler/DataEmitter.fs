@@ -10,7 +10,29 @@ module DataEmitter =
         Type : Type;
         Value: obj;
     }
+        
+    type FieldName = string
+    type TypeName = string
 
+    (* encapsulates an incrementable index *)
+    type IncrementingCounterBuilder () = 
+        let mutable start = 0
+        member this.Return(expr) = 
+            start <- start + 1            
+            expr start 
+              
+    (* Handles automatically passing the il generator through the requested calls *)
+    type ILGenBuilder (gen: ILGenerator) = 
+        member this.Bind(expr, func)= 
+            expr gen
+            func () 
+
+        member this.Return(v) = ()
+        member this.Zero () = ()
+        member this.For(col, func) = for item in col do func item
+        member this.Combine expr1 expr2 = ()
+        member this.Delay expr = expr()
+   
     let private assemblyName = new AssemblyName("Dynamics")
 
     let private assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndSave)
@@ -25,45 +47,42 @@ module DataEmitter =
     let private createConstructor (typeBuilder:TypeBuilder) typeList =
         typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, typeList |> List.toArray)
 
-    let private toType (name, _) = (name, (typeof<String>))
-
-    let private callDefaultConstructor (gen: ILGenerator) = 
-        let objType = typeof<obj>
-        gen.Emit(OpCodes.Call, objType.GetConstructor(Type.EmptyTypes))
-        gen.Emit(OpCodes.Ldarg_0)
-
     let private loadThis (gen: ILGenerator) = 
         gen.Emit(OpCodes.Ldarg_0)
-        gen
 
-    let private emitNewInstanceRef (gen : ILGenerator) =
-        gen |> loadThis |> callDefaultConstructor
+    let private emitReturn (gen: ILGenerator) = 
+        gen.Emit(OpCodes.Ret)
 
-    let private assignField (argIndex : int) (field : FieldBuilder) (gen : ILGenerator) =        
-        gen.Emit(OpCodes.Ldarg, argIndex)
-        gen.Emit(OpCodes.Stfld, field)
-        gen
-
-    let private loadConstructorArg (gen : ILGenerator) ((num, field) : int * FieldBuilder) = 
-        gen |> loadThis |> assignField num field
-
-    let private completeConsructor (gen : ILGenerator) = gen.Emit(OpCodes.Ret)
+    let private callDefaultConstructor (gen: ILGenerator) = 
+        gen.Emit(OpCodes.Call, typeof<obj>.GetConstructor(Type.EmptyTypes))        
     
+    let private setFieldFromStack (field : FieldBuilder) (gen : ILGenerator) = 
+        gen.Emit(OpCodes.Stfld, field)
+    
+    let private loadArg (argIndex : int) (gen: ILGenerator) = 
+        gen.Emit(OpCodes.Ldarg, argIndex)
+
     let private build (fields : FieldBuilder list) (cons : ConstructorBuilder) = 
         let generator = cons.GetILGenerator()
-    
-        generator |> emitNewInstanceRef
 
-        let fieldsWithIndexes = fields |> List.zip [1..(List.length fields)]
+        let ilBuilder = new ILGenBuilder(generator)
 
-        fieldsWithIndexes
-            |> List.map (loadConstructorArg generator)
-            |> ignore
+        let nextIdx = new IncrementingCounterBuilder()
 
-        generator |> completeConsructor
+        ilBuilder {   
+            do! loadThis
+            do! callDefaultConstructor
+            do! loadThis
 
-        
-    let make name types = 
+            for field in fields do
+                do! loadThis
+                do! nextIdx { return loadArg }
+                do! field |> setFieldFromStack  
+                
+            do! emitReturn
+        }
+
+    let make (name : TypeName) (types : (FieldName * Type) list)= 
         let typeBuilder = typeBuilder name
         let fieldBuilder = fieldBuilder typeBuilder
         let createConstructor = createConstructor typeBuilder        
@@ -75,7 +94,7 @@ module DataEmitter =
 
         typeBuilder.CreateType()
 
-    let instantiate typeName objInfo =
+    let instantiate (typeName : TypeName) (objInfo : DynamicField list) =
         let values = objInfo |> List.map (fun i -> i.Value) |> List.toArray
         let types  = objInfo |> List.map (fun i -> (i.Name, i.Type))
 
