@@ -5,12 +5,12 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>38833141-71af-41c7-9114-d73d6d870192</ProjectGuid>
+    <ProjectGuid>7c8a699c-b4da-4c9d-89dd-6df70271ac70</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>CsvHandler</RootNamespace>
-    <AssemblyName>CsvHandler</AssemblyName>
+    <RootNamespace>CsvHandler.Tests</RootNamespace>
+    <AssemblyName>CsvHandler.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <Name>CsvHandler</Name>
+    <Name>CsvHandler.Tests</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -20,7 +20,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\CsvHandler.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\CsvHandler.Tests.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,34 +29,40 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\CsvHandler.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\CsvHandler.Tests.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FSharp.Data">
-      <HintPath>..\packages\FSharp.Data.1.1.10\lib\net40\FSharp.Data.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="FSharp.Data.DesignTime">
-      <HintPath>..\packages\FSharp.Data.1.1.10\lib\net40\FSharp.Data.DesignTime.dll</HintPath>
+    <Reference Include="FsUnit.NUnit">
+      <HintPath>..\packages\FsUnit.1.2.1.0\Lib\Net40\FsUnit.NUnit.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>True</Private>
     </Reference>
+    <Reference Include="nunit.framework">
+      <HintPath>..\packages\NUnit.2.6.2\lib\nunit.framework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Management.Automation">
-      <HintPath>..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\WindowsPowerShell\3.0\System.Management.Automation.dll</HintPath>
-    </Reference>
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataEmitter.fs" />
-    <Compile Include="CsvReader.fs" />
-    <Compile Include="CsvPsCmdlet.fs" />
+    <Compile Include="Tests.fs" />
     <None Include="Script.fsx" />
     <None Include="packages.config" />
+    <None Include="app.config" />
+    <None Include="samplecsv1.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CsvHandler\CsvHandler.fsproj">
+      <Name>CsvHandler</Name>
+      <Project>{38833141-71af-41c7-9114-d73d6d870192}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
