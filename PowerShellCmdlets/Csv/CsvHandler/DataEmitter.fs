@@ -59,7 +59,7 @@ module DataEmitter =
     let private setFieldFromStack (field : FieldBuilder) (gen : ILGenerator) = 
         gen.Emit(OpCodes.Stfld, field)
     
-    let private loadArg (argIndex : int) (gen: ILGenerator) = 
+    let private loadArgToStack (argIndex : int) (gen: ILGenerator) = 
         gen.Emit(OpCodes.Ldarg, argIndex)
 
     let private build (fields : FieldBuilder list) (cons : ConstructorBuilder) = 
@@ -67,7 +67,7 @@ module DataEmitter =
 
         let ilBuilder = new ILGenBuilder(generator)
 
-        let nextIdx = new IncrementingCounterBuilder()
+        let forNextIndex = new IncrementingCounterBuilder()
 
         ilBuilder {   
             do! loadThis
@@ -76,7 +76,7 @@ module DataEmitter =
 
             for field in fields do
                 do! loadThis
-                do! nextIdx { return loadArg }
+                do! forNextIndex { return loadArgToStack }
                 do! field |> setFieldFromStack  
                 
             do! emitReturn
@@ -89,7 +89,6 @@ module DataEmitter =
         let fields = types |> List.map (fun (name, ``type``) -> fieldBuilder name ``type``)
         let definedConstructor = types |> List.map snd |> createConstructor
     
-        
         definedConstructor |> build fields
 
         typeBuilder.CreateType()
