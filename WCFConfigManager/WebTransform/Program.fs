@@ -73,7 +73,7 @@ let newEndpointValues config (endpoints: WebConfig.Endpoint list) =
                 | _ -> ()
     ]
 
-let newDatabaseValues config (connectionStrings: WebConfig.Add3 list) = 
+let newDatabaseValues config (connectionStrings: WebConfig.Add2 list) = 
     [
         for connectionString in connectionStrings do 
             match connectionString.Name |> lookup config.DBs with
