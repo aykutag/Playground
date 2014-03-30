@@ -22,7 +22,17 @@ namespace NoNulls
 
         private Expression finalExpression;
 
-        private static Random rand = new Random();
+        private Boolean IsMethod { get; set; }
+        
+        private void CaptureFinal(Expression node, bool isMethod)
+        {
+            if (finalExpression == null)
+            {
+                finalExpression = node;
+
+                IsMethod = isMethod;
+            }
+        }
 
         protected override Expression VisitLambda<T>(Expression<T> node)
         {
@@ -31,30 +41,46 @@ namespace NoNulls
             return result;
         }
 
+        protected override Expression VisitMethodCall(MethodCallExpression node)
+        {
+            CaptureFinal(node, true);
+
+            expressions.Push(node);
+
+            if (IsMethod)
+            {
+                return BuildFinal(node);
+            }
+
+            return Visit(node.Object);
+        }
+
         protected override Expression VisitMember(MemberExpression node)
         {            
             expressions.Push(node);
 
-            if (finalExpression == null)
-            {
-                finalExpression = node;
-            }
+            CaptureFinal(node, false);
 
             var exp = Visit(node.Expression);
 
+            if (IsMethod)
+            {
+                return node;
+            }
+            
+            return BuildFinal(exp);
+        }
+
+        private Expression BuildFinal(Expression exp)
+        {
             if (expressions.Count == 0)
             {
                 return exp;
             }
 
-            var condition =  BuildIfs(expressions.Pop());
+            var condition = BuildIfs(expressions.Pop());
 
-            return Expression.Block(new []{ condition} );
-        }
-
-        private LabelTarget Label
-        {
-            get { return Expression.Label(finalExpression.Type); }
+            return Expression.Block(new[] { condition });
         }
 
         private Expression BuildIfs(Expression top)

@@ -11,6 +11,11 @@ namespace NoNulls
     {
         public virtual School School { get; set; }
 
+        public School GetSchool()
+        {
+            return School;
+        }
+
         public virtual IEnumerable<User> ClassMatesEnumerable { get; set; }
 
         public virtual List<User> ClassMatesList { get; set; }
@@ -23,16 +28,31 @@ namespace NoNulls
     public class School
     {
         public virtual District District { get; set; }
+
+        public District GetDistrict()
+        {
+            return District;
+        }
     }
 
     public class District
     {
         public virtual Street Street { get; set; }
+
+        public Street GetStreet()
+        {
+            return Street;
+        }
     }
 
     public class Street
     {
         public String Name { get; set; }
+
+        public String GetName(int i)
+        {
+            return Name + i;
+        }
     }
 }
 

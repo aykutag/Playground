@@ -23,6 +23,16 @@ namespace NoNulls
 
 
         [TestMethod]
+        public void TestGet()
+        {
+            var user = new User();
+
+            var name = Option.Safe(() => user.GetSchool().District.Street.Name);
+
+            Assert.IsNull(name);
+        }
+
+        [TestMethod]
         public void Test2()
         {
             var user = new User
@@ -42,13 +52,41 @@ namespace NoNulls
             {
                 School = new School
                          {
-                             District = new District()
+                             District = new District
+                                        {
+                                            Street = new Street
+                                                     {
+                                                         Name = "foo"
+                                                     }
+                                        }
                          }
             };
 
-            var name = Option.Safe(() => user.School.District);
+            var name = Option.Safe(() => user.GetSchool().GetDistrict().GetStreet().Name);
 
-            Assert.IsNotNull(name);
+            Assert.AreEqual(name, "foo");
+        }
+
+        [TestMethod]
+        public void Test4()
+        {
+            var user = new User
+            {
+                School = new School
+                {
+                    District = new District
+                    {
+                        Street = new Street
+                                 {
+                                     Name = "foo"
+                                 }
+                    }
+                }
+            };
+
+            var name = Option.Safe(() => user.GetSchool().GetDistrict().GetStreet().GetName(1));
+
+            Assert.AreEqual(name, "foo1");
         }
     }
 }
