@@ -18,13 +18,45 @@ namespace NoNulls
         }
 
         [TestMethod]
+        public void TestWithValueTypeTargetNull()
+        {
+            User user = null;
+
+            var name = Option.Safe(() => user.Number);
+
+            Assert.IsFalse(name.ValidChain());
+        }
+
+        [TestMethod]
+        public void TestWithValueTypeTargetNullField()
+        {
+            User user = null;
+
+            var name = Option.Safe(() => user.Field.Field.Field.Field.Field);
+
+            Assert.IsFalse(name.ValidChain());
+        }
+
+        [TestMethod]
+        public void TestWithValueTypeTarget()
+        {
+            var user = new User();
+
+            user.Number = 0;
+
+            var name = Option.Safe(() => user.Number);
+
+            Assert.IsTrue(name.ValidChain());
+        }
+
+        [TestMethod]
         public void TestBasicNullWithValueTypeTarget()
         {
             var user = new User();
 
             var name = Option.Safe(() => user.School.District.Street.Number);
 
-            Assert.IsFalse(name.HasValue());
+            Assert.IsFalse(name.ValidChain());
         }
 
 
@@ -35,7 +67,7 @@ namespace NoNulls
 
             var name = Option.Safe(() => user.GetSchool().District.Street.Name);
 
-            Assert.IsFalse(name.HasValue()); 
+            Assert.IsFalse(name.ValidChain()); 
         }
 
 
@@ -47,9 +79,9 @@ namespace NoNulls
                 School = new School()
             };
 
-            var name = Option.Safe(() => user.School.District);
+            var name = Option.Safe(() => user.School.District.Street);
 
-            Assert.IsFalse(name.HasValue());
+            Assert.IsFalse(name.ValidChain());
         }
 
         [TestMethod]

@@ -85,22 +85,21 @@ namespace NoNulls
 
             var returnNull = Expression.New(constructorInfo, new [] { nullValue, stringRepresentation, falseVal });
 
-            BinaryExpression ifNull;
-
-            // last item
-            if (expressions.Count == 0)
-            {
-                ifNull = Expression.Equal(top, Expression.Constant(default(T)));
-            }
-            else
-            {
-                ifNull = Expression.ReferenceEqual(top, Expression.Constant(null));
-            }
-
+            var ifNull = Expression.ReferenceEqual(top, Expression.Constant(null));
+            
             var finalReturn = Expression.New(constructorInfo, new []{ finalExpression, stringRepresentation, trueVal });
+           
+            if (expressions.Count == 1)
+            {
+                expressions.Clear();
+            }
+            
+            var condition = Expression.Condition(ifNull, returnNull, 
+                    expressions.Count == 0 ? 
+                        finalReturn 
+                        : BuildIfs(expressions.Pop()));
 
-            var condition = Expression.Condition(ifNull, returnNull, expressions.Count == 0 ? finalReturn : BuildIfs(expressions.Pop()));
-
+            
             return condition;            
         }
     }

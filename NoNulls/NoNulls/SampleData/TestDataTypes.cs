@@ -16,6 +16,10 @@ namespace NoNulls
             return School;
         }
 
+        public int Number { get; set; }
+
+        public User Field;
+
         public virtual IEnumerable<User> ClassMatesEnumerable { get; set; }
 
         public virtual List<User> ClassMatesList { get; set; }

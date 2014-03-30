@@ -4,14 +4,14 @@ namespace NoNulls
 {
     public class MethodValue<T> 
     {
-        private readonly bool _hasValue;
+        private readonly bool _validChain;
         private T _value;
 
         public T Value
         {
             get
             {
-                if (HasValue())
+                if (ValidChain())
                 {
                     return _value;   
                 }
@@ -25,17 +25,17 @@ namespace NoNulls
 
         public String Failure { get; set; }
 
-        public MethodValue(T value, String failure, bool hasValue)
+        public MethodValue(T value, String failure, bool validChain)
         {
-            _hasValue = hasValue;
+            _validChain = validChain;
             Value = value;
             Failure = failure;
         }
 
 
-        public bool HasValue()
+        public bool ValidChain()
         {
-            return _hasValue;
+            return _validChain;
         }
     }
 }
