@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NUnit.Framework;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 
 namespace NoNulls
@@ -12,13 +7,24 @@ namespace NoNulls
     public class ExpressionTests
     {
         [TestMethod]
-        public void Test1()
+        [ExpectedException(typeof(NoValueException))]
+        public void ShouldThrow()
         {
             var user = new User();
 
-            var name = Option.Safe(() => user.School.District.Street.Name);
+            var name = Option.Safe(() => user.School.District.Street.Number);
 
-            Assert.IsNull(name);
+            var v = name.Value;
+        }
+
+        [TestMethod]
+        public void TestBasicNullWithValueTypeTarget()
+        {
+            var user = new User();
+
+            var name = Option.Safe(() => user.School.District.Street.Number);
+
+            Assert.IsFalse(name.HasValue());
         }
 
 
@@ -29,24 +35,25 @@ namespace NoNulls
 
             var name = Option.Safe(() => user.GetSchool().District.Street.Name);
 
-            Assert.IsNull(name);
+            Assert.IsFalse(name.HasValue()); 
         }
 
+
         [TestMethod]
-        public void Test2()
+        public void TestNullWithReferenceTypeTarget()
         {
             var user = new User
-                       {
-                           School = new School()
-                       };
+            {
+                School = new School()
+            };
 
             var name = Option.Safe(() => user.School.District);
 
-            Assert.IsNull(name);
+            Assert.IsFalse(name.HasValue());
         }
 
         [TestMethod]
-        public void Test3()
+        public void TestNonNullWithMethods()
         {
             var user = new User
             {
@@ -64,11 +71,11 @@ namespace NoNulls
 
             var name = Option.Safe(() => user.GetSchool().GetDistrict().GetStreet().Name);
 
-            Assert.AreEqual(name, "foo");
+            Assert.AreEqual(name.Value, "foo");
         }
 
         [TestMethod]
-        public void Test4()
+        public void TestNonNullsWithMethodCalls()
         {
             var user = new User
             {
@@ -86,7 +93,7 @@ namespace NoNulls
 
             var name = Option.Safe(() => user.GetSchool().GetDistrict().GetStreet().GetName(1));
 
-            Assert.AreEqual(name, "foo1");
+            Assert.AreEqual(name.Value, "foo1");
         }
     }
 }

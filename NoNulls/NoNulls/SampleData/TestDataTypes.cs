@@ -49,6 +49,8 @@ namespace NoNulls
     {
         public String Name { get; set; }
 
+        public int Number { get; set; }
+
         public String GetName(int i)
         {
             return Name + i;

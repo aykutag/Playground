@@ -1,22 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 
 namespace NoNulls
 {
-    public class Option
-    {
-        public static T Safe<T>(Expression<Func<T>>  input)
-        {
-            var transform = new NullVisitor().VisitAndConvert(input, "test");
-
-            return transform.Compile()();
-        }
-    }
-
-    public class NullVisitor : ExpressionVisitor
+    public class NullVisitor<T> : ExpressionVisitor
     {
         private Stack<Expression> expressions = new Stack<Expression>();
 
@@ -36,9 +24,9 @@ namespace NoNulls
 
         protected override Expression VisitLambda<T>(Expression<T> node)
         {
-            var result = base.VisitLambda<T>(node);
+            var result = base.Visit(node.Body);
 
-            return result;
+            return Expression.Lambda(result);
         }
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
@@ -85,11 +73,31 @@ namespace NoNulls
 
         private Expression BuildIfs(Expression top)
         {
-            var returnNull = Expression.Constant(null, finalExpression.Type);//Expression.Return(Expression.Label(), finalExpression.Type));
+            var stringRepresentation = Expression.Constant(top.ToString(), typeof(string));
 
-            var ifNull = Expression.ReferenceEqual(top, Expression.Constant(null));
+            var trueVal = Expression.Constant(true);
 
-            var finalReturn = finalExpression;//Expression.Return(Label, finalExpression, finalExpression.Type);
+            var falseVal = Expression.Constant(false);
+
+            var nullValue = Expression.Constant(default(T), finalExpression.Type);
+
+            var constructorInfo = typeof(MethodValue<T>).GetConstructor(new[] { typeof(T), typeof(string), typeof(bool) });
+
+            var returnNull = Expression.New(constructorInfo, new [] { nullValue, stringRepresentation, falseVal });
+
+            BinaryExpression ifNull;
+
+            // last item
+            if (expressions.Count == 0)
+            {
+                ifNull = Expression.Equal(top, Expression.Constant(default(T)));
+            }
+            else
+            {
+                ifNull = Expression.ReferenceEqual(top, Expression.Constant(null));
+            }
+
+            var finalReturn = Expression.New(constructorInfo, new []{ finalExpression, stringRepresentation, trueVal });
 
             var condition = Expression.Condition(ifNull, returnNull, expressions.Count == 0 ? finalReturn : BuildIfs(expressions.Pop()));
 
