@@ -1,23 +1,7 @@
 function ServiceInitializer(){
     this.initServices = function (app){
-        //app.service('instagramService', instagramRss);
         app.service('realtime', realtime);
     };
-
-
-    function instagramRss($http){
-
-        function apiForTag(tag){
-            return "http://instagram.com/tags/" + tag + "/feed/recent.rss";
-        }
-
-        this.query = function(tag){
-            return $http.jsonp(apiForTag(tag) + "?callback=foo").then(function(result){
-                console.log("here");
-                return $.parseXML(result);
-            }, console.log);
-        }
-    }
 
     function realtime(){
         function basePath(){
@@ -32,7 +16,7 @@ function ServiceInitializer(){
         var clients = [];
 
         socket.on('data', function(data){
-            _.forEach(function(client){
+            _.forEach(clients, function(client){
                 client(data);
             });
         });
@@ -40,6 +24,5 @@ function ServiceInitializer(){
         this.register = function(client){
             clients.push(client);
         };
-
     }
 }

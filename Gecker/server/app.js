@@ -1,9 +1,12 @@
-var Server = require("./server").Server;
-var RealTime = require("./realtime").RealTime;
-var Instagram = require("./instagram").Instagram;
+var Server = require("./src/server").Server;
+var RealTime = require("./src/realtime").RealTime;
+var Instagram = require("./src/instagram").Instagram;
+var _ = require('underscore')._;
 
-new RealTime(new Server());
+var tag = process.argv[2];
 
-var instagram = new Instagram("nofilter");
+console.log("checking for tag " + tag);
 
-instagram.query(console.log);
+var instagram = new Instagram(tag);
+
+var realtime = new RealTime(new Server(), instagram.query);
