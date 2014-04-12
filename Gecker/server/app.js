@@ -10,3 +10,9 @@ console.log("checking for tag " + tag);
 var instagram = new Instagram(tag);
 
 var realtime = new RealTime(new Server(), instagram.query);
+
+setInterval(function(){
+
+    instagram.query(realtime.push);
+
+}, 1000 * 30);

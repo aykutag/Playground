@@ -21,6 +21,7 @@ textarea {
 html {
     font-size: 1em;
     line-height: 1.4;
+    background-color: black;
 }
 
 /*
@@ -301,4 +302,20 @@ textarea {
     h3 {
         page-break-after: avoid;
     }
+
+}
+
+.imageText{
+    text-align: center;
+    color:white;
+}
+
+.imageView{
+    padding-top:10px;
+    padding-bottom:10px;
+}
+
+.repeat-body{
+    width:650px;
+    margin: 0 auto;
 }

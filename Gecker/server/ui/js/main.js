@@ -1,6 +1,7 @@
 function App(){
     this.run = function(app){
         new ServiceInitializer().initServices(app);
+        new Directives().initDirectives(app);
 
         applyConfigs(app);
     };
