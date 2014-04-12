@@ -1,8 +1,6 @@
 function feedController($scope, realtime){
     $scope.feed = [];
 
-    function id(x) { return x };
-
     realtime.register(function(data){
         console.log("got data");
 

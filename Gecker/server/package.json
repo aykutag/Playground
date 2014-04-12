@@ -6,6 +6,7 @@
         "socket.io": "0.9.16",
         "request": "2.34.0",
         "xlm2js": "0.4.2",
-        "underscore":  "1.6.0"
+        "underscore":  "1.6.0",
+        "openurl": "1.1.0"
     }
 }

@@ -305,17 +305,30 @@ textarea {
 
 }
 
-.imageText{
+.image-text{
     text-align: center;
     color:white;
+    width:650px;
+    opacity:0;
+    -moz-transition: opacity 2s; /* Firefox 4 */
+    -webkit-transition: opacity 2s; /* Safari and Chrome */
+    -o-transition: opacity 2s;
+    transition: opacity 2s;
 }
 
-.imageView{
-    padding-top:10px;
+.instagram-element{
+    padding-top: 10px;
     padding-bottom:10px;
+    float:left;
 }
-
 .repeat-body{
     width:650px;
     margin: 0 auto;
+}
+
+img {opacity:0;
+    -moz-transition: opacity 2s; /* Firefox 4 */
+    -webkit-transition: opacity 2s; /* Safari and Chrome */
+    -o-transition: opacity 2s;
+    transition: opacity 2s;
 }

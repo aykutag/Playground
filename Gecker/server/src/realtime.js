@@ -4,6 +4,8 @@ exports.RealTime = function(server, init){
 
     var socketIO = io.listen(server);
 
+    socketIO.set('log level', 1);
+
     var root = this;
 
     socketIO.sockets.on('connection', function(socket){
