@@ -1,6 +1,6 @@
 var io = require('socket.io');
 
-exports.RealTime = function(server, init){
+exports.RealTime = function(server){
 
     var socketIO = io.listen(server);
 
@@ -8,15 +8,27 @@ exports.RealTime = function(server, init){
 
     var root = this;
 
-    socketIO.sockets.on('connection', function(socket){
-        console.log("connected");
+    this.onLogin = function(pushTo){
+        root.loginFunction = pushTo;
 
-        socket.on("disconnect", function(){
-            console.log("disconnect");
+        return root;
+    };
+
+    this.run = function(){
+        socketIO.sockets.on('connection', function(socket){
+            console.log("connected");
+
+            socket.on("disconnect", function(){
+                console.log("disconnect");
+            });
+
+            root.loginFunction(root.push);
         });
+    };
 
-        init(root.push);
-    });
+    this.notify = function(data){
+        socketIO.sockets.json.emit("realtime", data);
+    };
 
     this.push = function(data) {
         socketIO.sockets.json.emit("data", data);

@@ -1,25 +1,74 @@
-var Server = require("./src/server").Server;
-var RealTime = require("./src/realtime").RealTime;
-var Instagram = require("./src/instagram").Instagram;
-var _ = require('underscore')._;
-var openurl = require("openurl");
+var fs    = require('fs'),
+    nconf = require('nconf'),
+    _ = require('underscore')._,
+    openurl = require("openurl"),
+    Instagram = require("instagram-node-lib");
 
-var tag = process.argv[2];
-var showing = process.argv[3];
-var checkTimeSeconds = process.argv[4];
+var Server = require("./src/server").Server,
+    RealTime = require("./src/realtime").RealTime,
+    InstagramRss = require("./src/instagramRss").InstagramRss;
 
-console.log("checking for tag " + tag);
-console.log("showing the " + showing + " latest images");
-console.log("checking every " + checkTimeSeconds + " second");
+var App = function(){
 
-var instagram = new Instagram(tag, showing);
+    var config = require('./config.json');
 
-var realtime = new RealTime(new Server(), instagram.query);
+    var rss = new InstagramRss(config.tag, config.take);
 
-setInterval(function(){
+    var server = new Server().start();
 
-    instagram.query(realtime.push);
+    var realtime = new RealTime(server).onLogin(rss.query);
 
-}, 1000 * checkTimeSeconds);
+    var hostUrl = "http://" + config.ip + ":3000";
+    var callbackUrl = hostUrl + "/callback";
 
-openurl.open("http://localhost:3000");
+    this.run = function(){
+        runOnTimer(config.interval);
+    };
+
+    function execRealTime(){
+        addCallback();
+        initInstagram();
+        subscribeTo(config.tag);
+    }
+
+    function initInstagram(){
+        Instagram.set('client_id', config.client_id);
+        Instagram.set('client_secret', config.client_secret);
+        Instagram.set('callback_url', callbackUrl);
+        Instagram.set('redirect_uri', hostUrl);
+    }
+
+    function subscribeTo(tag){
+        Instagram.subscriptions.subscribe({
+            object: 'tag',
+            object_id: tag,
+            aspect: 'media',
+            callback_url: callbackUrl,
+            type: 'subscription',
+            id: '#'
+        });
+    }
+
+    function runOnTimer(interval){
+        setInterval(function(){
+            rss.query(realtime.push)
+        }, interval * 1000);
+    }
+
+    function addCallback(){
+        server.addRoutes(function(app){
+            app.get('/callback', function(req, res){
+                Instagram.subscriptions.handshake(req, res);
+            });
+
+            app.post("/callback", function(req, res){
+                rss.query(realtime.push);
+            });
+        })
+    }
+};
+
+
+new App().run();
+
+openurl.open('http://localhost:3000');

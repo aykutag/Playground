@@ -1,8 +1,9 @@
 var request = require('request');
 var _ = require('underscore')._;
 var xml2js = require("xml2js");
+var Instagram = require("instagram-node-lib");
 
-exports.Instagram = function(tag, takeAmount){
+exports.InstagramRss = function(tag, takeAmount){
     var options = {
         host: "http://instagram.com/tags/" + tag + "/feed/recent.rss",
         method: 'GET'

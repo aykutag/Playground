@@ -13,16 +13,28 @@ function ServiceInitializer(){
 
         var socket = io.connect(basePath());
 
-        var clients = [];
+        var rssQueryClients = [];
+        var realTimeClients = [];
 
-        socket.on('data', function(data){
-            _.forEach(clients, function(client){
+
+        socket.on('realtime', function(data){
+            _.forEach(realTimeClients, function(client){
                 client(data);
             });
         });
 
-        this.register = function(client){
-            clients.push(client);
+        socket.on('data', function(data){
+            _.forEach(rssQueryClients, function(client){
+                client(data);
+            });
+        });
+
+        this.registerRssPush = function (client){
+            rssQueryClients.push(client);
         };
+
+        this.registerRealTime = function (client){
+            realTimeClients.push(client);
+        }
     }
 }

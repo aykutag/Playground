@@ -8,11 +8,18 @@ exports.Server = function(){
 
     app.use(express.static(hostRoot));
 
-    var server = http.createServer(app);
+    this.start = function(){
+        var server = http.createServer(app);
 
-    var port = process.env.PORT || 3000;
-    server.listen(port);
+        var port = process.env.PORT || 3000;
+        server.listen(port);
 
-    console.log("listneing on " + port);
-    return server;
+        console.log("listneing on " + port);
+
+        return server;
+    };
+
+    this.addRoutes = function(callback){
+        callback(app);
+    };
 };
