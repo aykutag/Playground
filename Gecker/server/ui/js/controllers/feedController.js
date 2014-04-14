@@ -4,18 +4,18 @@ function feedController($scope, realtime, $http){
     realtime.registerRssPush(function (data) {
         console.log("got data");
 
+        var map = {};
+
+        _.forEach($scope.feed, function (item){
+            map[item.link] = true;
+        });
+
         _.forEach(data, function (item) {
-            $scope.feed.unshift(item);
+            if(!map.hasOwnProperty(item.link)){
+                $scope.feed.unshift(item);
+            }
         });
 
         $scope.$apply();
-    });
-
-    realtime.registerRealTime(function (data){
-       console.log("got realtime");
-
-        $http.jsonp(data.url).success(function(result){
-            console.log(result);
-        });
     });
 }

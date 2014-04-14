@@ -4047,7 +4047,7 @@ var $AnimateProvider = ['$provide', function($provide) {
    * @param {Function} factory The factory function that will be executed to return the animation
    *                           object.
    */
-  this.registerRssPush = function(name, factory) {
+  this.register = function(name, factory) {
     var key = name + '-animation';
     if (name && name.charAt(0) != '.') throw $animateMinErr('notcsel',
         "Expecting class selector starting with '.' got '{0}'.", name);
@@ -7083,7 +7083,7 @@ function $ControllerProvider() {
    * @param {Function|Array} constructor Controller constructor fn (optionally decorated with DI
    *    annotations in the array notation).
    */
-  this.registerRssPush = function(name, constructor) {
+  this.register = function(name, constructor) {
     assertNotHasOwnProperty(name, 'controller');
     if (isObject(name)) {
       extend(controllers, name);
@@ -14299,7 +14299,7 @@ function $FilterProvider($provide) {
       return $provide.factory(name + suffix, factory);
     }
   }
-  this.registerRssPush = register;
+  this.register = register;
 
   this.$get = ['$injector', function($injector) {
     return function(name) {

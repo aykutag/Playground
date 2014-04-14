@@ -2,6 +2,7 @@ var fs    = require('fs'),
     nconf = require('nconf'),
     _ = require('underscore')._,
     openurl = require("openurl"),
+    request = require('request'),
     Instagram = require("instagram-node-lib");
 
 var Server = require("./src/server").Server,
@@ -14,15 +15,20 @@ var App = function(){
 
     var rss = new InstagramRss(config.tag, config.take);
 
-    var server = new Server().start();
+    var server = new Server();
 
-    var realtime = new RealTime(server).onLogin(rss.query);
-
+    var callbackEndpoint = "/callback1";
     var hostUrl = "http://" + config.ip + ":3000";
-    var callbackUrl = hostUrl + "/callback";
+    var callbackUrl = hostUrl + callbackEndpoint;
+
+    var realtime = {};
 
     this.run = function(){
         runOnTimer(config.interval);
+
+        //execRealTime();
+
+        realtime = new RealTime(server.start()).onLogin(rss.query).run();
     };
 
     function execRealTime(){
@@ -57,14 +63,39 @@ var App = function(){
 
     function addCallback(){
         server.addRoutes(function(app){
-            app.get('/callback', function(req, res){
-                Instagram.subscriptions.handshake(req, res);
+            app.get(callbackEndpoint, function(req, res){
+                console.log("callback from instagram");
+
+                var handshake = Instagram.subscriptions.handshake(req, res);
             });
 
-            app.post("/callback", function(req, res){
-                rss.query(realtime.push);
+            app.post(callbackEndpoint, function(req, res){
+
+                req.body.forEach(function(tag){
+                    request(parseTag(tag), function (error, response, body){
+                        var results =
+                            _.chain(JSON.parse(body).data)
+                            .map(function(item){
+                                return {
+                                    image: item.images.standard_resolution,
+                                    caption: item.caption.text
+                                }
+                            }).value();
+
+                        console.log(results);
+                        realtime.notify(results);
+                    });
+                });
+
+                res.end();
             });
         })
+    }
+
+    function parseTag(tag){
+        var url = 'https://api.instagram.com/v1/tags/' + tag.object_id + '/media/recent?client_id=' + config.client_id;//479edbf0004c42758987cf0244afd3ef'
+
+        return url;
     }
 };
 

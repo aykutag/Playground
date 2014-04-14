@@ -24,6 +24,8 @@ exports.RealTime = function(server){
 
             root.loginFunction(root.push);
         });
+
+        return this;
     };
 
     this.notify = function(data){

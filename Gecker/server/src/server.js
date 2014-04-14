@@ -6,7 +6,11 @@ exports.Server = function(){
 
     console.log(hostRoot);
 
+    app.use(express.bodyParser());
+    app.use(express.methodOverride());
+    app.use(app.router);
     app.use(express.static(hostRoot));
+    app.use(express.errorHandler());
 
     this.start = function(){
         var server = http.createServer(app);
