@@ -84,7 +84,7 @@ module RoomConnections =
                 let originalConnectionSize = List.length state.Connections                              
                     
                 let newState = processRoomMsg state msg
-
+                 
                 if originalConnectionSize <> List.length newState.Connections then
                     printfn "[room %d] total clients %d" roomId <| List.length newState.Connections
 

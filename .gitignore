@@ -21,3 +21,4 @@ maven-compiler-plugin/
 dist/
 *.o
 .DS_Store
+.project
