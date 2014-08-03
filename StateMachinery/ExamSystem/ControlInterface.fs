@@ -6,6 +6,7 @@ open ExamSystem.StateManager
 open ExamSystem.Utils
 open ExamSystem.CommunicationProtocol
 open System.Net
+open Newtonsoft.Json
 
 module ControlInterface = 
     
@@ -21,7 +22,9 @@ module ControlInterface =
         async{
             let! room = agentRepo.Control |> postAndAsyncReply (fun chan -> ControlInterfaceMsg.GetRoom(roomNum, chan)) 
             
-            agentRepo.Control |> post (ControlInterfaceMsg.BroadcastTo (client, sprintf "%A" room))
+            let jsonString = JsonConvert.SerializeObject(room, Formatting.Indented)
+
+            agentRepo.Control |> post (ControlInterfaceMsg.BroadcastTo (client, jsonString))
         }
 
     let rec private listenForControlCommands (agentRepo:AgentRepo) client =         
@@ -40,6 +43,7 @@ module ControlInterface =
                         | Record roomNum            -> postToControl <| ControlInterfaceMsg.Record roomNum
                         | ResetRoom roomNum         -> postToControl <| ControlInterfaceMsg.Reset roomNum
                         | QueryRoom roomNum         -> do! agentRepo |> queryRoom roomNum client
+                        | HelpRequest _             -> postToControl <| ControlInterfaceMsg.Help client
                         | _                         -> postToControl <| ControlInterfaceMsg.Broadcast ("Unknown control sequence " + message)                 
             with
                 | exn -> postToControl (ControlInterfaceMsg.Disconnect client)
@@ -47,6 +51,7 @@ module ControlInterface =
 
     let private shutdown connections =         
         "Shutting down" |> strToBytes |> broadcast connections |> ignore
+        
         List.iter closeClient connections                       
 
     let private getRoom data roomNum = List.find (fun (r:Room) -> r.RoomId = roomNum) data.RoomStates
@@ -82,8 +87,12 @@ module ControlInterface =
     let private startStreaming data roomNum = { (roomNum |> getRoom data) with RecorderStatus = Streaming }
 
     let private processControlMessageState data = function        
-        | ControlInterfaceMsg.Connect client ->     
+        | ControlInterfaceMsg.Help client -> 
+            "This is the help" |> writeStrToSocket client |> ignore
             
+            data
+
+        | ControlInterfaceMsg.Connect client ->                 
             clientConnected data client
 
             { data with Connections = client::data.Connections }
@@ -114,19 +123,29 @@ module ControlInterface =
             { data with RoomStates = reverse |> updateRoomState data roomNum (sprintf "room %d reversed" roomNum) }                                
 
         | ControlInterfaceMsg.AddParticipant (roomNum, participantId) -> 
+            (RoomConnMsg.Broadcast "participantAdded") |> postToRoom data.AgentRepo roomNum
+
             addParticipant data roomNum participantId 
             data
 
         | ControlInterfaceMsg.Record roomNum -> 
+            (RoomConnMsg.Broadcast "recording") |> postToRoom data.AgentRepo roomNum
+
             { data with RoomStates = startRecording data roomNum |> updateRoomList data.RoomStates }
 
         | ControlInterfaceMsg.Reset roomNum -> 
+            (RoomConnMsg.Broadcast "reset") |> postToRoom data.AgentRepo roomNum
+
             { data with RoomStates = reset data roomNum |> updateRoomList data.RoomStates }
             
         | ControlInterfaceMsg.StartPreview roomNum -> 
+            (RoomConnMsg.Broadcast "startPreview") |> postToRoom data.AgentRepo roomNum
+
             { data with RoomStates = startPreview data roomNum |> updateRoomList data.RoomStates }                      
 
         | ControlInterfaceMsg.StartStreaming roomNum -> 
+            (RoomConnMsg.Broadcast "startStreaming") |> postToRoom data.AgentRepo roomNum
+
             { data with RoomStates = startStreaming data roomNum |> updateRoomList data.RoomStates }
         
     /// The control interface agent.  Handles room state requests

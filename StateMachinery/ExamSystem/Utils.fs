@@ -37,7 +37,7 @@ module NetworkUtils =
                 tcp |> closeClient
                 false
 
-    let strToBytes (str:string) = System.Text.ASCIIEncoding.ASCII.GetBytes str
+    let strToBytes (str:string) = System.Text.ASCIIEncoding.ASCII.GetBytes (str.Trim() + Environment.NewLine)
     
     let broadcast clients msg : (FailedClients * SucceedClients) = 
         List.fold(fun (failed, succeeded) client ->                     
@@ -58,6 +58,7 @@ module NetworkUtils =
 
     let broadcastStr connections msg = msg + Environment.NewLine |> strToBytes |> broadcast connections 
 
+    let writeStrToSocket client str = str |> strToBytes |> writeToSocket client
 
 module Option = 
     let bindDo f = 

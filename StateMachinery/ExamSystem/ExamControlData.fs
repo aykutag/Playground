@@ -15,7 +15,8 @@ module ExamControlData =
         | Connect of TcpClient
         | Disconnect of TcpClient
         | Broadcast of string
-        | BroadcastExcept of TcpClient * String    
+        | BroadcastExcept of TcpClient * String 
+        | Help of TcpClient  
         | Shutdown
 
     type ControlInterfaceMsg = 
@@ -32,6 +33,7 @@ module ExamControlData =
         | Reset of RoomId
         | StartPreview of RoomId        
         | StartStreaming of RoomId
+        | Help of TcpClient
 
     type GlobalMsg = 
         | Broadcast of string

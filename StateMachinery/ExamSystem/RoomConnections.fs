@@ -30,7 +30,10 @@ module RoomConnections =
             do! Async.SwitchToNewThread() 
             try
                 for message in client |> packets do
-                    roomConn.Post (BroadcastExcept (client, message))
+                    match message with 
+                        | HelpRequest _ -> roomConn.Post (RoomConnMsg.Help client)
+                        | _ -> roomConn.Post (RoomConnMsg.BroadcastExcept (client, message))
+                    
             with
                 | exn -> roomConn.Post (RoomConnMsg.Disconnect client)
         }
@@ -38,6 +41,10 @@ module RoomConnections =
     let private postDisconnect (inbox:Agent<RoomConnMsg>) client = inbox.Post (RoomConnMsg.Disconnect client)
 
     let private processRoomMsg state = function        
+        | RoomConnMsg.Help client -> 
+            "This is the help" |> writeStrToSocket client |> ignore
+            state
+
         | RoomConnMsg.Connect client    ->
             state.AgentRepo.Global |> post (GlobalMsg.Broadcast <| sprintf "Client connected to room %d" state.RoomId)
                             
@@ -79,7 +86,7 @@ module RoomConnections =
                 let newState = processRoomMsg state msg
 
                 if originalConnectionSize <> List.length newState.Connections then
-                    printfn "total clients %d" <| List.length newState.Connections
+                    printfn "[room %d] total clients %d" roomId <| List.length newState.Connections
 
                 return! loop newState
             }

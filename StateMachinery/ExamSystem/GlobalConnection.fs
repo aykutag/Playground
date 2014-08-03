@@ -38,9 +38,39 @@ module GlobalConnection =
 
     let findControllerForRoom roomId roomControllers = List.tryFind (fst >> (=) roomId) roomControllers
 
+    let listenForControlConnections agentRepo = 
+        let listener = new TcpListener(IPAddress.Any, 82)
+        let cts = new CancellationTokenSource()
+        let token = cts.Token
+     
+        let main = async {
+            try
+                listener.Start(10)
+                while not cts.IsCancellationRequested do
+                    let! client = Async.FromBeginEnd(listener.BeginAcceptTcpClient, listener.EndAcceptTcpClient)
+                    printfn "Got client %s" <| client.Client.RemoteEndPoint.ToString()
+                
+                    agentRepo.Control |> post (ControlInterfaceMsg.Connect client)
+                    agentRepo.Control |> post (ControlInterfaceMsg.Broadcast "control connnected")    
+                   
+            finally
+                printfn "Listener stopping"
+                listener.Stop()        
+        }
+ 
+        Async.Start(main, token)
+ 
+        { 
+            new IDisposable 
+            with member x.Dispose() = 
+                    cts.Cancel() |> ignore
+                    cts.Dispose()
+                    agentRepo.Control |> post ControlInterfaceMsg.Shutdown
+        }
+
     /// Accepts sockets and hands off the connected client
     /// To the right agent based on their handshake
-    let listenForConnections agentRepo = 
+    let listenForRoomConnections agentRepo = 
         let listener = new TcpListener(IPAddress.Any, 81)
         let cts = new CancellationTokenSource()
         let token = cts.Token
@@ -52,22 +82,18 @@ module GlobalConnection =
                     let! client = Async.FromBeginEnd(listener.BeginAcceptTcpClient, listener.EndAcceptTcpClient)
                     printfn "Got client %s" <| client.Client.RemoteEndPoint.ToString()
                 
-                    match connectionType client with
-                        | Control -> 
-                            agentRepo.Control |> post (ControlInterfaceMsg.Connect client)
-                            agentRepo.Control |> post (ControlInterfaceMsg.Broadcast "control connnected")    
-                                        
-                        | Room roomId ->
-                            agentRepo.Rooms
-                                |> findControllerForRoom roomId
-                                |> function
-                                    | Some room -> room |> snd |> post (RoomConnMsg.Connect client)
-                                    | None -> agentRepo.Global |> post (GlobalMsg.Broadcast <| sprintf "Unknown room requested!")
-                                              client.Close()
+                    async {
+                        "Enter room number: " |> writeStrToSocket client |> ignore
 
-                        | Unknown str ->
-                            client.Close()
-                            agentRepo.Global |> post (GlobalMsg.Broadcast <| sprintf "Unknown connection found, closing: %s" str)
+                        let roomId = roomNum client
+
+                        agentRepo.Rooms
+                            |> findControllerForRoom roomId
+                            |> function
+                                | Some room -> room |> snd |> post (RoomConnMsg.Connect client)
+                                | None -> agentRepo.Global |> post (GlobalMsg.Broadcast <| sprintf "Unknown room requested!")
+                                          client.Close()
+                    } |> Async.Start
 
                    
             finally
@@ -83,7 +109,6 @@ module GlobalConnection =
                     cts.Cancel() |> ignore
                     cts.Dispose()
                     agentRepo.Rooms   |> List.iter (snd >> post RoomConnMsg.Shutdown) 
-                    agentRepo.Control |> post ControlInterfaceMsg.Shutdown
         }
  
     /// Sets up a timer to broadcast the current time to the room agent

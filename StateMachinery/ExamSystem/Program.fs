@@ -56,7 +56,9 @@ let main argv =
     
     agentRepos.Rooms |> List.iter startRoom 
 
-    use listener = listenForConnections agentRepos       
+    use roomlistener = listenForRoomConnections agentRepos       
+
+    use controlListener = listenForControlConnections agentRepos
     
     let (timer, disposable) = timer 1000 agentRepos
 
@@ -71,11 +73,10 @@ let main argv =
             let room = agentRepos.Control.PostAndReply (fun chan -> ControlInterfaceMsg.GetRoom (1, chan))
 
             printfn "%A" room        
-    } |> Async.Start 
+    } |> ignore //Async.Start 
 
     Console.ReadKey() |> ignore
 
     dispose disposable
-
     
     0

@@ -7,6 +7,7 @@ module CommunicationProtocol =
     open System.Text
     open System.Net
     open System.Net.Sockets
+    open NetworkUtils
     open FSharpx.Strings    
 
 
@@ -143,6 +144,12 @@ module CommunicationProtocol =
             str.Replace("reset ","").Trim() |> Convert.ToInt32 |> Some
         else None
 
+    let (|HelpRequest|_|) (str:string) = 
+        if str.Trim() = "help" then 
+            Some("help")
+        else
+            None
+
     let (|StartStreaming|_|) (str:string) = 
         if str.StartsWith("stream ") then 
             str.Replace("stream ","").Trim() |> Convert.ToInt32 |> Some
@@ -167,3 +174,12 @@ module CommunicationProtocol =
             | IsControl -> ConnectionType.Control
             | IsRoom num -> ConnectionType.Room num 
             | str -> ConnectionType.Unknown str
+
+    let rec roomNum client = 
+        let value = Seq.head (client |> packets)
+        let (success, result) = Int32.TryParse(value)
+
+        if success then result
+        else 
+            "Invalid room number. Try again: " |> writeStrToSocket client |> ignore
+            roomNum client
